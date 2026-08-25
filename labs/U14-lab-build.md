@@ -17,8 +17,11 @@ with exit 1 and "GATE N FAILED - scorecard not rendered" on any failure:
 G1 contract: run [sys.executable, "bench/keys/generate_keys.py"] via subprocess
    from the repo root; require exit 0 and capture the "contract consistent" line.
 G2 grader: run bench/verify_selftest.py; require "SELFTEST PASSED" in stdout.
-G3 app: run ["./mvnw","-q","test"] with cwd app/api (shell fallback mvnw.cmd on
-   Windows); require exit 0. THEN require http://localhost:8080/api/policy to
+G3 app: run ["./mvnw","-q","test"] with cwd app/api; on Windows use
+   ["cmd","/c", str(ROOT/"app/api/mvnw.cmd"), "-q","test"] with an ABSOLUTE
+   path and NO shell=True (a bare "mvnw.cmd" fails under Git Bash because
+   NoDefaultCurrentDirectoryInExePath blocks cwd resolution, and shell=True
+   with an args list mangles arguments); require exit 0. THEN require http://localhost:8080/api/policy to
    answer 200 (the operator boots the app; the gate only verifies it's up).
 G4 campaign: run bench/run_campaign.py --modes <all ten> --replay
    --out u14-lab/grid.json; require exit 0.

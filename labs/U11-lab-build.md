@@ -31,16 +31,18 @@ Write drill.py in u11-lab/. It must:
 3. Exit 1 if any mismatch, 0 otherwise. Standard library only. Return only code.
 ```
 Run: `python u11-lab/drill.py`
-**Expected output:**
+**Expected output (verified against the real drill):**
 ```
 drill: C-72148-2 weight 35 -> 30
 CONTRACT BROKEN:
   PA-1001: computed (95,APPROVED) != expected (100,APPROVED)
-  PA-1002: computed (60,MANUAL_REVIEW) != expected (65,MANUAL_REVIEW)
-  PA-1009: computed (0,DENIED) != expected (0,DENIED)  <- should NOT appear
 exit 1
 ```
-PA-1009 must NOT be listed (eligibility short-circuits before the tampered weight matters) — if your drill flags it, your reimplementation checks scoring before eligibility, which is itself a contract violation. PA-1003 must also be absent (didn't meet C-2). The gate names exactly the blast radius, nothing more.
+Exactly ONE line — and every request that does NOT appear is a lesson:
+- **PA-1002** is absent even though it's a 72148 request, because it never met C-72148-2 — blast radius follows *dependencies*, not proximity. A gate that flagged it would be guessing by association.
+- **PA-1009** is absent even though it met all three criteria, because eligibility short-circuits before the tampered weight matters — if your drill flags it, your reimplementation checks scoring before eligibility, which is itself a contract violation.
+- **PA-1003** is absent (didn't meet C-2).
+The gate names exactly the blast radius, nothing more.
 
 ### Step 3: Extend the gate to fixtures (15 min)
 **Claude prompt to use:**

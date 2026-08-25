@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q9</b> in <code>naive</code>, then again in <code>notes</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The history layer collapses to structured note lines: 1,700 → 198 tokens, same ✓ verdict. External memory just replaced accumulation.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Write Family, Precisely",
       "body": "<p><strong>Write</strong> means saving context outside the window so it doesn't ride along on every call (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>). Anthropic's guidance names the discipline <strong>structured note-taking</strong> — agentic memory that persists <em>decisions, unresolved issues, and critical identifiers</em> rather than transcripts, retrieved later to maintain coherence across long work (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>).</p><p>The key word is <em>structured</em>. A note like <code>PA-1002 | MANUAL_REVIEW | missing: C-72148-2 | reviewer asked about EMG timing</code> costs ~20 tokens and answers three future questions. The same information buried in four turns of chat costs hundreds and answers nothing until re-read in full. Write is a trade with two sides: you pay a small upkeep cost at write time (deciding what's load-bearing, appending the note) and collect on every subsequent call whose history layer would otherwise have grown.</p>"
     },

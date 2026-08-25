@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Run the U00 auditor against the same asks you make in the app, side by side.</p><p style=\"margin:.2rem 0\"><b>See:</b> The Lens and the auditor must agree to the token on every call — two instruments, one truth. If they ever diverge, the canary rule: find the liar before trusting either.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "From A/B to K Arms",
       "body": "<p>The kit's M29 taught the clinical-trial method for TWO strategies. Your grid has TEN — and multiplicity changes the rules. With 10 arms and 10 questions there are dozens of pairwise comparisons; at conventional thresholds, some will 'win' by luck alone. The professional adjustments: pre-register the primary comparison (in this course: <code>routed</code> vs <code>naive</code> — everything else is exploratory), raise the significance bar as K grows (the kit's own stretch goal names Bonferroni), and in live mode run repetitions per cell and report <strong>medians with spread</strong>, never single runs — the knowledge-graph course measured 2x variance between identical fresh sessions, meaning any single-run comparison is a coin flip. Replay mode is deterministic (repetition-free by design); the moment you record live, the median-of-3 discipline becomes mandatory.</p>"
     },
@@ -64,6 +69,11 @@
         "Single-instrument trust: the dashboard is the only measurement path; when it drifts, its numbers stay green because it grades its own homework.",
         "Cross-quantity headlines: a mechanical-floor multiple quoted next to a live-session multiple in the same table, no labels — readers average them into a number that describes nothing."
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: [PARENT-KG] the Three Quantities and the silently-crashed-server canary story (knowledge-graph course, Capstone 2); [PARENT-KIT] M28-M30 (observability, A/B testing, versioning); [ROT-LIT] long-horizon benchmarking literature — full references in docs/canon.md."
     }
   ],
   "takeaway": "Professional evaluation is three disciplines stacked: know which of the Three Quantities your number is, measure it on two instruments that must reconcile, and keep one fallback-free canary arm running — because the numbers most likely to mislead you are the ones produced by infrastructure that fails politely.",

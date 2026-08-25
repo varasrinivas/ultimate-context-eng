@@ -22,11 +22,25 @@
     "Notes nobody reads back — writing memory without a retrieval habit is a diary, not a memory system; the write strategy is only half of write/select"
   ],
   "crosslinks": [
-    {"type": "kit", "label": "Kit M12 — Conversation History Management"},
-    {"type": "kit", "label": "Kit M24 — Agent Loop Context (pressure)"},
-    {"type": "kg", "label": "KG M02B — the poisoned transcript, fixed four ways"}
+    {
+      "type": "kit",
+      "label": "Kit M12 — Conversation History Management"
+    },
+    {
+      "type": "kit",
+      "label": "Kit M24 — Agent Loop Context (pressure)"
+    },
+    {
+      "type": "kg",
+      "label": "KG M02B — the poisoned transcript, fixed four ways"
+    }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> In one session, ask Q1, Q3, Q6 and Q9 in <code>naive</code>; note the session sparkline. Refresh, repeat in <code>notes</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The naive sparkline climbs (context pressure); the notes sparkline stays flat. Long horizons are won before the window fills.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Pressure, Not Capacity, Is the Enemy",

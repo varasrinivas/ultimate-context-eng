@@ -345,6 +345,17 @@ html[data-theme="dark"] .mv-diagram svg { filter:brightness(.88) saturate(.92); 
       <div class="stat-item"><span class="num" id="statPct">0%</span><span class="lbl">Complete</span></div>
     </div>
   </div>
+
+  <div style="max-width:920px;margin:1.6rem auto 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.3rem 1.5rem;display:grid;grid-template-columns:1.1fr 1fr;gap:1.3rem;align-items:center" id="benchPanel">
+    <div>
+      <div class="eyebrow" style="margin-bottom:.4rem">step 0 · launch the bench</div>
+      <p style="margin:.3rem 0">Every module in this course is a switch in <b>MedFlow Copilot</b> — flip a strategy, watch the receipt change. Start it once, keep it running:</p>
+      <pre style="background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.7rem .9rem;font-size:.82rem;overflow-x:auto"><code>cd app/api && ./mvnw spring-boot:run     # terminal 1
+cd app/ui  && npm install && npm run dev # terminal 2 → localhost:5173</code></pre>
+      <p style="margin:.4rem 0;font-size:.9rem">No API key needed (replay mode). <a href="app-guide.html">App guide with screenshots →</a></p>
+    </div>
+    <a href="app-guide.html" style="display:block"><img src="assets/shot-2-receipt.png" alt="The Token Lens receipt" style="width:100%;border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(44,42,38,.10)"></a>
+  </div>
   <div class="tracks-grid" id="tracksGrid"></div>
 </div>
 
@@ -392,13 +403,23 @@ const MODS = [
   "sections": [
     {
       "type": "content",
-      "title": "The Definition, and Why It Exists",
-      "body": "<p><strong>Context engineering</strong> is, in Anthropic's words, the practice of <em>strategically curating and managing the finite set of tokens available to an LLM during inference</em> (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>). Three ideas hide inside that sentence. First, the window is a <strong>finite attention budget</strong>: every token consumes processing capacity, and attention thins as the count grows. Second, <strong>context rot</strong> is real — accuracy degrades as the window fills, even when you are nowhere near the hard limit; the failure axis is signal-to-noise, not size [ROT-LIT]. Third, the goal is a search problem: find the <strong>smallest set of high-signal tokens</strong> that maximizes the likelihood of the outcome you want.</p><p>Prompt engineering asks <em>what words go in this message</em>. Context engineering asks <em>what gets included at all, in what order, fresh or cached, full or summarized</em>. The first is a writing problem. The second is a budgeting problem — and budgets need bills you can read.</p>"
+      "title": "Your Classroom Is an App",
+      "body": "<p>Before a single definition: this is where the whole course happens.</p><figure style=\"margin:1rem 0\"><img src=\"assets/shot-1-queue.png\" alt=\"MedFlow review queue with the Copilot panel\" style=\"width:100%;border:1px solid var(--line);border-radius:10px\"><figcaption style=\"font-size:.85em;color:var(--muted);margin-top:.4rem\">MedFlow Copilot — a prior-authorization portal. Left: the work queue (PA-1002, PA-1004, PA-1010 await a clinician). Right: the AI copilot every module will interrogate.</figcaption></figure><p>Clinicians review requests; the copilot answers questions about them (\"why is PA-1002 in manual review?\"). Every one of the fifteen modules ahead is a <em>switch in this app's toggle bar</em> — you will learn context engineering by flipping strategies and watching what each one does to the same questions. Launch it now (<code>SETUP.md</code>, two terminals, no API key) — the rest of this module happens on your screen, not on this page.</p>"
     },
     {
       "type": "content",
-      "title": "Meet the Instrument: MedFlow Copilot and the Token Lens",
-      "body": "<p>This course refuses to teach budgeting in the abstract, so it ships an app. <strong>MedFlow Copilot</strong> is a prior-authorization portal: providers submit requests (like <strong>PA-1002</strong>, an MRI Lumbar Spine request for member M-2002), the system scores them against clinical criteria, and a reviewer works the manual-review queue with an AI copilot at their side.</p><p>The twist is the <strong>Token Lens</strong>. Every copilot call returns a <em>TokenReceipt</em>: input and output tokens, cost, cache behavior, latency — and the input itemized across <strong>five layers</strong>: system, retrieved, tool, history, and the user turn. The five lines always sum exactly to the input total; an instrument whose parts don't sum to its whole is lying, and this one is audited by tests. Next to the total sits the <strong>correctness stamp</strong>: the ten standing questions in this course carry deterministic answer keys derived from the seeded data, and every graded answer is stamped ✓ VERIFIED or ✗ FAILED. A saving that fails its key is stamped <em>savings void</em> — the single rule the whole course hangs on.</p><p>In the shipped replay mode (no API key needed) a naive ask of standing question Q1 bills <strong>1,694 input tokens</strong> for an answer whose necessary facts fit in roughly 40 — the course's motivating ratio, under 1% signal. Every module from here on attacks that bill from a different angle. (Replay numbers are deterministic, labeled <em>synthetic-pre-recording</em> in every receipt; a live recording pass replaces them with API-measured usage — the labels tell you which you are reading.)</p>"
+      "title": "The Receipt Is the Syllabus",
+      "body": "<p>Ask the copilot preset <b>Q1</b> in <code>naive</code> mode. This appears:</p><figure style=\"margin:1rem 0\"><img src=\"assets/shot-2-receipt.png\" alt=\"Token receipt for a naive ask\" style=\"width:100%;border:1px solid var(--line);border-radius:10px\"><figcaption style=\"font-size:.85em;color:var(--muted);margin-top:.4rem\">The Token Lens: an itemized bill for one AI call.</figcaption></figure><p>Read it line by line, because each line is a course track: <b>System</b> (65) — the static surface, U06. <b>Retrieved</b> (1,612 — the bloat!) — selection, U04–U05. <b>Tool results</b> — shaping, U07. <b>History</b> — memory and compaction, U03/U08. <b>User turn</b> (17) — the only part most people call \"the prompt\". They sum to 1,694; the five-layer sum ALWAYS equals the input total, and that reconciliation rule is the first thing you should ever check on any token dashboard anyone shows you.</p><p>And the stamp: <b>✓ VERIFIED</b>. This call was graded against an answer key derived from the app's own seeded data. The stamp is the course's central law: <em>a token saving that fails its answer key is not a saving</em>.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Now, the Definition",
+      "body": "<p>You have seen the thing; now name it. <strong>Context engineering</strong> is, in Anthropic's words, the practice of <em>strategically curating and managing the finite set of tokens available to the model during inference</em> [ANTHROPIC-CE]. On the receipt you just read, that means: every line is a decision someone made — or failed to make. <code>naive</code> mode made none, so 95% of its bill is a data dump the question never needed.</p><p>Two forces make this a discipline rather than a tidiness preference. The <b>attention budget</b>: model attention degrades as the window fills, so every low-signal token actively taxes the high-signal ones. And <b>context rot</b>: past a point, ADDING context makes answers worse, not better — you can rot at 60% utilization [ROT-LIT]. The cure is never \"a bigger window\"; it is the smallest set of high-signal tokens that maximizes the outcome — the minimal-high-signal principle this course operationalizes one toggle at a time.</p>"
+    },
+    {
+      "type": "content",
+      "title": "One Toggle, To Prove It Works",
+      "body": "<p>Flip the toggle bar to <code>okf</code> and re-ask Q1:</p><figure style=\"margin:1rem 0\"><img src=\"assets/shot-3-okf.png\" alt=\"okf-mode receipt, dramatically smaller\" style=\"width:100%;border:1px solid var(--line);border-radius:10px\"><figcaption style=\"font-size:.85em;color:var(--muted);margin-top:.4rem\">Same question, one canonical concept instead of a dump — and the same ✓ verdict.</figcaption></figure><p>Same answer, fraction of the bill, verdict intact. That is the entire course in one gesture — the next fourteen modules teach you <em>which</em> toggle, <em>when</em>, <em>why</em>, and how to prove it with numbers nobody can argue with. (Numbers here are replay-mode fixtures, labeled <code>synthetic-pre-recording</code>; the U02 lab shows you how to re-earn every one of them.)</p>"
     },
     {
       "type": "quiz",
@@ -463,6 +484,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Pin preset <b>Q9</b> and ask it in every one of the ten toggles, left to right.</p><p style=\"margin:.2rem 0\"><b>See:</b> Watch the receipt's <i>shape</i> change per mode — and note which single toggle changes the <i>verdict</i>: <code>compressed</code> stamps ✕ FAILED on Q9. That stamp is the course's law.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Five Layers: the Receipt's Unit of Account",
@@ -553,6 +579,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Terminal, not toggles this time: <code>cd bench && python keys/generate_keys.py && python verify_selftest.py</code>, then the full campaign from the lab.</p><p style=\"margin:.2rem 0\"><b>See:</b> Cross-check: the FAIL cells in your terminal table (naive×Q7, compressed×Q9) are the same ✕ stamps the app shows for those asks — two instruments, one truth.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "The Baseline Grid — This Course's Control Group",
@@ -651,6 +682,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q9</b> in <code>naive</code>, then again in <code>notes</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The history layer collapses to structured note lines: 1,700 → 198 tokens, same ✓ verdict. External memory just replaced accumulation.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Write Family, Precisely",
       "body": "<p><strong>Write</strong> means saving context outside the window so it doesn't ride along on every call (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>). Anthropic's guidance names the discipline <strong>structured note-taking</strong> — agentic memory that persists <em>decisions, unresolved issues, and critical identifiers</em> rather than transcripts, retrieved later to maintain coherence across long work (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>).</p><p>The key word is <em>structured</em>. A note like <code>PA-1002 | MANUAL_REVIEW | missing: C-72148-2 | reviewer asked about EMG timing</code> costs ~20 tokens and answers three future questions. The same information buried in four turns of chat costs hundreds and answers nothing until re-read in full. Write is a trade with two sides: you pay a small upkeep cost at write time (deciding what's load-bearing, appending the note) and collect on every subsequent call whose history layer would otherwise have grown.</p>"
     },
@@ -722,6 +758,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Open the Compare drawer on <b>Q1</b>: <code>naive</code> vs <code>jit</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The wide dump (1,694) loses to identifiers-plus-lookup (~250) — retrieve wide belongs in the retriever, never in the window.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Select's First Discipline: Wide Then Narrow",
@@ -820,6 +861,11 @@ const MODS = [
     }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q4</b> three times: <code>jit</code> → <code>graph</code> → <code>okf</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> Watch the retrieved layer change character: on-demand records, an [EXTRACTED]-tagged subgraph, then one canonical concept at 186 tokens — deterministic selection is the cheapest correct answer in the whole grid.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Selection Is a Family, Not a Technique",
@@ -924,6 +970,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q3</b> in <code>cached</code> mode twice in a row, then switch any toggle and ask again.</p><p style=\"margin:.2rem 0\"><b>See:</b> Second ask: the cache-read badge jumps (CLEAN static prefix). After the toggle: back to 0% — you just watched one changed byte invalidate the prefix. That is the entire economics of static-first ordering.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Part of Context You Design Once",
       "body": "<p>Every receipt so far had a <em>system</em> layer — and it was the same tokens on every call. That is the static surface: the system prompt, the tool schemas, the few-shot examples. You design it once, and then every single call pays for it. Which means two disciplines apply that dynamic context never needed: <strong>make it small and right</strong> (it's rent, not groceries), and <strong>make it cacheable</strong> (rent should be discounted).</p><p>MedFlow's copilot system prompt is 65 tokens in <code>okf</code> mode. That number is a design decision, not an accident — this module is about making that decision well.</p>"
     },
@@ -1024,6 +1075,11 @@ const MODS = [
     }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Compare <code>budgeted</code> vs <code>compressed</code> on <b>Q9</b> in the drawer.</p><p style=\"margin:.2rem 0\"><b>See:</b> Budgeted evicts whole records and passes at 560; compressed abstracts and drops PA-1004 — ✕ FAILED, savings void. Fidelity is the boundary between compression and corruption.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Budgets: the Blunt Instrument That Works",
@@ -1128,6 +1184,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> In one session, ask Q1, Q3, Q6 and Q9 in <code>naive</code>; note the session sparkline. Refresh, repeat in <code>notes</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The naive sparkline climbs (context pressure); the notes sparkline stays flat. Long horizons are won before the window fills.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "Pressure, Not Capacity, Is the Enemy",
       "body": "<p>Ask MedFlow's copilot ten questions in <code>naive</code> mode and watch the session strip: every call re-carries the growing transcript, and the <em>history</em> layer climbs while answer quality has nowhere to go but down. This is <strong>context rot</strong> in its session form — 'performance degradation as context expands, despite increased data availability' [ANTHROPIC-CE] — and the literature is blunt that it starts well below the window limit [ROT-LIT]. The failure signal is signal-to-noise, not size.</p><p>The session strip's sparkline makes pressure visible: naive slopes upward forever. The two techniques in this module exist to bend that curve flat.</p>"
     },
@@ -1226,6 +1287,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q9</b> in <code>isolated</code> and read the receipt's tool line.</p><p style=\"margin:.2rem 0\"><b>See:</b> 1,805 tokens — MORE than naive, because the sub-agent's clean-window call is billed into the tool layer. Isolation buys focus, not single-question savings; its win arrives at hour two, not question one.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Fourth Strategy: Split It",
       "body": "<p><strong>Isolate</strong> is the last of the four canonical strategies [LC-WSCI]: 'give a sub-agent its own clean window, let it do the messy work, and return only the conclusion to the parent.' Anthropic's architecture guidance is concrete: specialized sub-agents 'handle focused tasks with clean context windows, returning condensed summaries of 1,000–2,000 tokens' to the coordinator [ANTHROPIC-CE].</p><p>MedFlow's <code>isolated</code> mode implements the honest version: a second model call receives a minimal, clean context for the data-gathering subtask, and its ≤1,500-token summary — not its working — feeds the main answer. The sub-call's tokens land in the <em>tool</em> layer of the receipt, because isolation's price should be visible, not hidden in another window.</p>"
     },
@@ -1315,6 +1381,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Compare <code>naive</code> vs <code>okf</code> on <b>Q7</b> (M-2003's DOB) in the drawer.</p><p style=\"margin:.2rem 0\"><b>See:</b> naive fabricates a birthdate — ✕ FAILED with the forbidden pattern named; okf refuses at 157 tokens — ✓ PASS. Abstention IS the correct answer, and the stamp knows it.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Grounding Ladder",
       "body": "<p>Not all grounding is equal. This course ranks grounding sources on a ladder, weakest to strongest: <strong>verbatim extraction</strong> (the fact appears exactly as stored — the kit's M18 rule: never abstract an identifier), <strong>provenance-tagged fusion</strong> (every claim carries its source tag), <strong>canonical files</strong> (one deterministic document owns the fact — MedFlow's <code>okf</code> mode reads the policy concept, which is why it answers the threshold question Q3 in 186 tokens with a PASS), and at the top, <strong>verifiable structure</strong> — claims an external checker can validate without trusting the model at all, like the <code>graph</code> mode's <code>[EXTRACTED]</code>-tagged edges (see the <a href=\"../../knowledge-graph/output/M06-okf-specification.html\">knowledge-graph course</a> for the full treatment).</p><p>The ladder's rule of thumb: <em>the higher the source, the less the answer depends on the model behaving well.</em> A verbatim extract can still be misread; a checkable structure can be re-verified by a script — which is exactly what <code>bench/verify.py</code> does to every answer in this course.</p>"
     },
@@ -1390,6 +1461,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Copy <code>bench/seed/dataset.json</code>, change one criterion weight in the copy, run the contract gate against it (U11 lab).</p><p style=\"margin:.2rem 0\"><b>See:</b> CONTRACT BROKEN names exactly PA-1001 — the true blast radius. Then remember: the running backend loaded the OLD seed at boot; restart it after any seed/fixture change or your app is a stale instrument.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Altitude One: Rot in the Window",
@@ -1469,6 +1545,11 @@ const MODS = [
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask all ten presets in <code>routed</code> mode.</p><p style=\"margin:.2rem 0\"><b>See:</b> Every stamp ✓, 239 median — and each receipt names its delegate (routed:okf, routed:notes…). The router is your own graded grid, executing.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "Alignment Before Optimization",
       "body": "<p>Anthropic's long-horizon guidance ends in an alignment table: compaction fits extended back-and-forth, note-taking fits milestone iteration, sub-agents fit parallel research (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\">canon: ANTHROPIC-CE</a>). The generalization is this module's thesis: <strong>every context strategy has a task shape it serves, and applying it elsewhere costs you</strong>. Your own grid proves it. <code>okf</code> is unbeatable on canonical questions (Q3: 186 tokens) but it's a policy reader — it can't summarize Rosa Delgado's history. <code>isolated</code> costs 1,805 median on single questions — the sub-agent's clean window is priced into the tool layer — yet it's the right unit for aggregation work. <code>compressed</code> is brilliant until the abstraction step drops PA-1004 on Q9. The knowledge-graph course measured the same law on codebases: forced-graph won structural questions and lost comprehension ones. No arm wins everywhere. <em>That is the finding, not the obstacle.</em></p>"
     },
@@ -1539,6 +1620,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Run the U00 auditor against the same asks you make in the app, side by side.</p><p style=\"margin:.2rem 0\"><b>See:</b> The Lens and the auditor must agree to the token on every call — two instruments, one truth. If they ever diverge, the canary rule: find the liar before trusting either.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "From A/B to K Arms",
@@ -1616,6 +1702,11 @@ const MODS = [
   ],
   "crosslinks": [],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Everything: fresh clone → seed gate → grader selftest → app tests → full campaign → reconcile → route.</p><p style=\"margin:.2rem 0\"><b>See:</b> The bench is the exam. scorecard.py refuses to render past a broken gate — pass it and the six-competency rubric is yours with evidence attached.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "The Run",

@@ -22,11 +22,25 @@
     "JIT without a loader contract — identifiers-only context with no reliable fetch tool leaves the model guessing instead of loading"
   ],
   "crosslinks": [
-    {"type": "kg", "label": "KG M06 — The OKF Specification (canonical files)"},
-    {"type": "kg", "label": "KG M09 — Serving Graphs over MCP (forced vs available)"},
-    {"type": "kit", "label": "Kit M09 — Retrieval Strategies (the rerank ladder)"}
+    {
+      "type": "kg",
+      "label": "KG M06 — The OKF Specification (canonical files)"
+    },
+    {
+      "type": "kg",
+      "label": "KG M09 — Serving Graphs over MCP (forced vs available)"
+    },
+    {
+      "type": "kit",
+      "label": "Kit M09 — Retrieval Strategies (the rerank ladder)"
+    }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q4</b> three times: <code>jit</code> → <code>graph</code> → <code>okf</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> Watch the retrieved layer change character: on-demand records, an [EXTRACTED]-tagged subgraph, then one canonical concept at 186 tokens — deterministic selection is the cheapest correct answer in the whole grid.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Selection Is a Family, Not a Technique",

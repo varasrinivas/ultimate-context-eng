@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Everything: fresh clone → seed gate → grader selftest → app tests → full campaign → reconcile → route.</p><p style=\"margin:.2rem 0\"><b>See:</b> The bench is the exam. scorecard.py refuses to render past a broken gate — pass it and the six-competency rubric is yours with evidence attached.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Run",
       "body": "<p>The capstone is a protocol, executed on a fresh clone, in order — each step gated by the one before it:</p><p><strong>1. Contract:</strong> <code>python bench/keys/generate_keys.py</code> — the seed must verify (10 determinations) before anything downstream is trusted. <strong>2. Grader:</strong> <code>python bench/verify_selftest.py</code> — prove the instrument can fail (it must catch the planted wrong answer AND the planted fabrication). <strong>3. App:</strong> backend tests green (<code>./mvnw test</code> — golden determinations, per-mode reconciliation, abstention, fidelity), then boot both halves in replay mode. <strong>4. Campaign:</strong> <code>python bench/run_campaign.py --modes</code> all ten <code>--replay</code> — 100 graded cells. <strong>5. Reconcile:</strong> your U13 reconciler — zero layer drift, zero instrument disagreements. <strong>6. Route:</strong> your U12 derivation — the table must re-derive from THIS run's grid, not the shipped one. Only then do you write the scorecard.</p>"
     },
@@ -63,6 +68,11 @@
         "Green-path-only writeups: no seams section, no FAILs mentioned — a report that can't name where it would break is a demo, and this course has spent fourteen modules on the difference.",
         "Rubric self-grading without pointers: six checked boxes and zero file paths — evidence-free mastery is the anecdote trap wearing a graduation gown."
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: everything — [ANTHROPIC-CE] (anthropic.com/engineering/effective-context-engineering-for-ai-agents), [LC-WSCI] (langchain.com/blog/context-engineering-for-agents), [ROT-LIT], [SG-GUIDE], and both parent courses [PARENT-KIT]/[PARENT-KG] — full references in docs/canon.md."
     }
   ],
   "takeaway": "Mastery is a protocol you can rerun and a scorecard you can defend: gates before trust, correctness gating every token number, seams named before they fail, and each of the six competencies backed by a pointer into results you produced yourself.",

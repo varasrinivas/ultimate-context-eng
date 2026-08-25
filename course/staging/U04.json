@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Open the Compare drawer on <b>Q1</b>: <code>naive</code> vs <code>jit</code>.</p><p style=\"margin:.2rem 0\"><b>See:</b> The wide dump (1,694) loses to identifiers-plus-lookup (~250) — retrieve wide belongs in the retriever, never in the window.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "Select's First Discipline: Wide Then Narrow",
       "body": "<p><strong>Select</strong> means pulling into the window only what helps the task (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>). The craft has a canonical shape: <em>retrieve wide, rerank narrow</em>. Casting a wide candidate net is nearly free — candidates live outside the window. Every context slot, by contrast, is expensive attention. A pipeline that gathers fifty candidates and ships the best three beats one that ships all fifty, on cost AND on quality — the forty-seven extras aren't neutral padding, they're rot [ROT-LIT].</p><p>MedFlow demonstrates select in two postures. <strong>Budgeted</strong> is select-by-cap: per-layer budgets with whole-record eviction — never truncate mid-record — landing every question near 560 tokens at 100% correctness (replay grid, synthetic-pre-recording). <strong>Jit</strong> is select-by-demand, Anthropic's just-in-time pattern: ship lightweight identifiers, let the model request the records it actually needs, inject only those (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>). On Q1 — three criteria for procedure 72148 — jit bills <strong>143 tokens</strong> against naive's 1,694: the model asked for one procedure record instead of receiving the database. The receipt shows jit's signature: retrieved shrinks to nearly nothing while a small tool layer appears — select moved the cost from bulk shipping to targeted lookup.</p>"
     },

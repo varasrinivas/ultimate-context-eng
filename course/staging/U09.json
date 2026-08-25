@@ -22,10 +22,21 @@
     "Unbriefed juniors — a sub-agent with a vague charter explores everything and concludes nothing; the hand-back contract (scope + summary budget) IS the technique"
   ],
   "crosslinks": [
-    {"type": "kit", "label": "Kit M26 — Multi-Agent Context Sharing"},
-    {"type": "kg", "label": "KG M12 — subagent exploration keeps reads out of the main window"}
+    {
+      "type": "kit",
+      "label": "Kit M26 — Multi-Agent Context Sharing"
+    },
+    {
+      "type": "kg",
+      "label": "KG M12 — subagent exploration keeps reads out of the main window"
+    }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q9</b> in <code>isolated</code> and read the receipt's tool line.</p><p style=\"margin:.2rem 0\"><b>See:</b> 1,805 tokens — MORE than naive, because the sub-agent's clean-window call is billed into the tool layer. Isolation buys focus, not single-question savings; its win arrives at hour two, not question one.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "The Fourth Strategy: Split It",

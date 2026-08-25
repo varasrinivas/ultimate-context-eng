@@ -22,11 +22,25 @@
     "Edge-case few-shot — stuffing examples of every weird case teaches the weirdness, not the pattern; canonical diverse examples teach the pattern"
   ],
   "crosslinks": [
-    {"type": "kit", "label": "Kit M04 — System Prompt Architecture"},
-    {"type": "kit", "label": "Kit M19 — Caching and Prefilling"},
-    {"type": "kg", "label": "KG M06 — index.md as a stable pre-flight read"}
+    {
+      "type": "kit",
+      "label": "Kit M04 — System Prompt Architecture"
+    },
+    {
+      "type": "kit",
+      "label": "Kit M19 — Caching and Prefilling"
+    },
+    {
+      "type": "kg",
+      "label": "KG M06 — index.md as a stable pre-flight read"
+    }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Ask <b>Q3</b> in <code>cached</code> mode twice in a row, then switch any toggle and ask again.</p><p style=\"margin:.2rem 0\"><b>See:</b> Second ask: the cache-read badge jumps (CLEAN static prefix). After the toggle: back to 0% — you just watched one changed byte invalidate the prefix. That is the entire economics of static-first ordering.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "The Part of Context You Design Once",

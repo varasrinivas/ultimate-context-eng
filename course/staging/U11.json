@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Copy <code>bench/seed/dataset.json</code>, change one criterion weight in the copy, run the contract gate against it (U11 lab).</p><p style=\"margin:.2rem 0\"><b>See:</b> CONTRACT BROKEN names exactly PA-1001 — the true blast radius. Then remember: the running backend loaded the OLD seed at boot; restart it after any seed/fixture change or your app is a stale instrument.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "Altitude One: Rot in the Window",
       "body": "<p><strong>Context rot</strong> is quality degradation from accumulated stale, contradictory, or low-relevance content — and you can hit it well below the token limit, because the failure axis is signal-to-noise, not size (see the rot literature in <code>docs/canon.md</code>). In a long MedFlow session the transcript accumulates resolved detours ('ignore the eligibility question, that was answered'), superseded instructions, and duplicate tool dumps. The cure at this altitude is <strong>compaction</strong> (U08): distill, preserve decisions and open issues, discard the rest — and you watched the session sparkline flatten when you applied it.</p><p>Transcript rot is the altitude everyone knows, because it happens in front of you. This module exists for the altitude that doesn't.</p>"
     },
@@ -64,6 +69,11 @@
         "Mixed-provenance tables: half the cells re-measured after a change, half quoted from before it — the table is internally inconsistent and no reader can tell.",
         "Drilling on production truth: practicing the seed-change drill on the real dataset.json and forgetting to restore — the drill itself becomes the drift incident."
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: [ROT-LIT] Diagnosing and Mitigating Context Rot (arxiv 2606.29718) and LOCA-bench (arxiv 2602.07962); [PARENT-KIT] M14 (decay/TTL/derived facts), M30 (versioning & drift attribution); [PARENT-KG] M11 (silent failures, freshness gates) — full references in docs/canon.md."
     }
   ],
   "takeaway": "Context rots at two altitudes — visibly in the transcript and silently in everything derived from your sources of truth — and only the second one needs a mechanical gate, because a derived fact inherits the shortest shelf life of its dependencies and expires without a smell.",

@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Pin preset <b>Q9</b> and ask it in every one of the ten toggles, left to right.</p><p style=\"margin:.2rem 0\"><b>See:</b> Watch the receipt's <i>shape</i> change per mode — and note which single toggle changes the <i>verdict</i>: <code>compressed</code> stamps ✕ FAILED on Q9. That stamp is the course's law.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "Five Layers: the Receipt's Unit of Account",
       "body": "<p>Every TokenReceipt in MedFlow itemizes input across five layers. <strong>System</strong>: the standing instructions and persona — identical on every call unless you change the design. <strong>Retrieved</strong>: whatever the assembler pulled from the domain — in naive mode, essentially the whole seeded database as JSON. <strong>Tool</strong>: results of lookups the model (or a sub-agent) performed mid-call. <strong>History</strong>: the conversation so far. <strong>User</strong>: the question itself — routinely the smallest line on the bill.</p><p>Read one real bill. Naive mode on <strong>Q9</strong> (\"summarize member M-2001's history\") bills 1,700 input tokens; the retrieved layer dominates because naive ships every member, every request, every criterion — including all three procedures' criteria tables that have nothing to do with Rosa Delgado. The question needed two requests: PA-1001 (APPROVED) and PA-1004 (MANUAL_REVIEW). Everything else was paid-for noise. Diagnosis always starts here: <em>which layer dominates, and did the answer need it?</em></p>"
     },

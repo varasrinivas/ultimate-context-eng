@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Compare <code>naive</code> vs <code>okf</code> on <b>Q7</b> (M-2003's DOB) in the drawer.</p><p style=\"margin:.2rem 0\"><b>See:</b> naive fabricates a birthdate — ✕ FAILED with the forbidden pattern named; okf refuses at 157 tokens — ✓ PASS. Abstention IS the correct answer, and the stamp knows it.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Grounding Ladder",
       "body": "<p>Not all grounding is equal. This course ranks grounding sources on a ladder, weakest to strongest: <strong>verbatim extraction</strong> (the fact appears exactly as stored — the kit's M18 rule: never abstract an identifier), <strong>provenance-tagged fusion</strong> (every claim carries its source tag), <strong>canonical files</strong> (one deterministic document owns the fact — MedFlow's <code>okf</code> mode reads the policy concept, which is why it answers the threshold question Q3 in 186 tokens with a PASS), and at the top, <strong>verifiable structure</strong> — claims an external checker can validate without trusting the model at all, like the <code>graph</code> mode's <code>[EXTRACTED]</code>-tagged edges (see the <a href=\"../../knowledge-graph/output/M06-okf-specification.html\">knowledge-graph course</a> for the full treatment).</p><p>The ladder's rule of thumb: <em>the higher the source, the less the answer depends on the model behaving well.</em> A verbatim extract can still be misread; a checkable structure can be re-verified by a script — which is exactly what <code>bench/verify.py</code> does to every answer in this course.</p>"
     },
@@ -64,6 +69,11 @@
         "Abstention punished: measure 'answered rate' and the copilot learns that 'insufficient evidence' costs it points — you have paid for confident fabrication with your own metric.",
         "Benchmarking on famous corpora: your RAG demo aces questions about a codebase the model memorized in training; the same pipeline on your private data fabricates with identical confidence."
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: [ANTHROPIC-CE] Anthropic, Effective context engineering for AI agents (anthropic.com/engineering/effective-context-engineering-for-ai-agents) — minimal high-signal & tool-return discipline; [PARENT-KG] the grounding ladder and provenance tags; [PARENT-KIT] M11 (provenance/fusion), M20-M21 (guardrails, schema+retry) — full references in docs/canon.md."
     }
   ],
   "takeaway": "An answer is grounded when its source can be checked, not when it sounds checked — so grade for forbidden fabrications as well as required facts, treat a gated refusal as a correct (and usually cheapest) answer, and never benchmark grounding on data the model could have memorized.",

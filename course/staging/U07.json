@@ -22,11 +22,25 @@
     "Fidelity by vibes — 'the summary looks fine' is not a check; only an assertion that names each surviving identifier can fail loudly enough to matter"
   ],
   "crosslinks": [
-    {"type": "kit", "label": "Kit M03 — Context Economics (the budget knee)"},
-    {"type": "kit", "label": "Kit M18 — Context Compression (the ladder's origin)"},
-    {"type": "kg", "label": "KG Capstone 2 — fidelity checks on graph exports"}
+    {
+      "type": "kit",
+      "label": "Kit M03 — Context Economics (the budget knee)"
+    },
+    {
+      "type": "kit",
+      "label": "Kit M18 — Context Compression (the ladder's origin)"
+    },
+    {
+      "type": "kg",
+      "label": "KG Capstone 2 — fidelity checks on graph exports"
+    }
   ],
   "sections": [
+    {
+      "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Compare <code>budgeted</code> vs <code>compressed</code> on <b>Q9</b> in the drawer.</p><p style=\"margin:.2rem 0\"><b>See:</b> Budgeted evicts whole records and passes at 560; compressed abstracts and drops PA-1004 — ✕ FAILED, savings void. Fidelity is the boundary between compression and corruption.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
     {
       "type": "content",
       "title": "Budgets: the Blunt Instrument That Works",
@@ -80,6 +94,11 @@
         "Budget by truncation — cutting at exactly N tokens mid-record corrupts the last fact; the model then reasons confidently from half a JSON object",
         "Assertion theater — a fidelity check that only samples, or only warns, converts the seatbelt back into decoration; it must enumerate every load-bearing id and it must throw"
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: [LC-WSCI] LangChain, Context Engineering for Agents (langchain.com/blog/context-engineering-for-agents) — the Compress strategy; [PARENT-KIT] context-eng-kit M03 (budgets), M18 (prune/extract/abstract + fidelity), M10 (tool-result shaping) — full references in docs/canon.md."
     }
   ],
   "takeaway": "Compression is a safest-first ladder — prune, extract verbatim, then abstract — and a saving only exists if the fidelity assertion proves the load-bearing facts survived.",

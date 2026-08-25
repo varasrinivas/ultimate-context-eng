@@ -25,6 +25,11 @@
   "sections": [
     {
       "type": "content",
+      "title": "🔬 On the bench",
+      "body": "<div style=\"border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface);padding:.9rem 1.1rem\"><p style=\"margin:.2rem 0\"><b>Do:</b> Terminal, not toggles this time: <code>cd bench && python keys/generate_keys.py && python verify_selftest.py</code>, then the full campaign from the lab.</p><p style=\"margin:.2rem 0\"><b>See:</b> Cross-check: the FAIL cells in your terminal table (naive×Q7, compressed×Q9) are the same ✕ stamps the app shows for those asks — two instruments, one truth.</p><p style=\"margin:.2rem 0;font-size:.85em\">Bench not running? <a href=\"app-guide.html\">App guide</a> · <code>SETUP.md</code></p></div>"
+    },
+    {
+      "type": "content",
       "title": "The Baseline Grid — This Course's Control Group",
       "body": "<p>Everything this course claims is anchored to one artifact: the <strong>graded baseline grid</strong> — all ten modes × all ten standing questions, every cell carrying <em>tokens and a verdict</em>. Median input tokens per mode (replay grid, <em>synthetic-pre-recording</em> labels; regenerate any time with <code>python bench/run_campaign.py --modes ... --replay</code>):</p><p><code>naive 1,696 · isolated 1,805 · cached 731 · budgeted 560 · graph 444 · jit 251 · routed 239 · compressed 231 · notes 198 · okf 186</code></p><p>Correctness: <strong>every mode passes every key except two disclosed teaching failures</strong> — naive fails Q7 (a fabricated date of birth for member M-2003, whose record is redacted; fixture labeled <em>synthetic-teaching-failure</em>) and compressed fails Q9 (its abstraction drops PA-1004). So naive and compressed grade 90%, everything else 100%. Read the grid the way this course always will: <em>cheapest correct</em>, per question class — okf owns canonical questions (Q3: 186 vs naive's 1,696, 9.1x), notes owns aggregation, and nothing beats naive by enough to matter on the user layer, because the question was never the problem.</p><p>When the app runs live (<code>ANTHROPIC_API_KEY</code> + <code>MEDFLOW_LIVE=1</code>), recorded fixtures replace the synthetic ones and the same commands regenerate this grid with API-measured usage. The labels on every receipt tell you which world a number came from — that labeling discipline is not optional bookkeeping, it IS the Honesty Rule.</p>"
     },
@@ -83,6 +88,11 @@
         "Averaging across question classes: one mean hides that okf wins canonical and loses nothing, while isolated loses every single-shot — per-class cheapest-correct is the actionable view",
         "Grading only the happy path: an answer key set with no abstention traps can't catch fabrication — Q7 exists precisely to punish confident wrongness"
       ]
+    },
+    {
+      "type": "content",
+      "title": "Sources",
+      "body": "Sources: [PARENT-KG] the knowledge-graph course's live_bench methodology (fresh-session medians, the forced-arm canary) and [ROT-LIT] LOCA-bench / context-rot literature (arxiv 2602.07962, 2606.29718) — full references in docs/canon.md."
     }
   ],
   "takeaway": "Record the graded naive baseline before touching a single lever — every future claim is a comparison against it, at medians, with two graders that must agree.",

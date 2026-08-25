@@ -11,6 +11,11 @@ Ask the SAME question in all ten strategy modes and read the receipts side by si
 ### Step 1: Collect the ten receipts
 Pin standing question **Q9** ("Summarize member M-2001's authorization history…") and ask it once in each mode using the toggle bar: naive → budgeted → compressed → cached → jit → graph → okf → notes → isolated → routed. The session strip at the bottom accumulates a sparkline as you go.
 **What to observe:** the *shape* of each receipt, not just the total — which layer shrank, which appeared, which vanished.
+**Expected output (replay-mode medians you should see on the receipts, Q9):**
+```
+naive 1,700 · budgeted ~560 · compressed 208 ✕FAILED · cached ~730
+jit ~250 · graph ~440 · okf ~190 · notes 167 · isolated ~1,800 · routed ~240
+```
 
 ### Step 2: Classify each mode into its family
 Fill this table (module U01 has the answer key — fill first, then check):
@@ -30,7 +35,7 @@ routed      ____              (meta)             picks one of the above
 
 ### Step 3: Watch a family fail honestly
 In the Compare drawer, pin Q9 with **compressed** vs **naive**. In the shipped replay data, compressed drops a required fact on Q9 — its stamp reads **✗ FAILED** and the drawer prints **"FAILED — savings void."**
-**What to observe:** the drawer refuses to celebrate the token delta. Write down which fact went missing (hover the stamp).
+**Expected output:** the compressed column shows `208 input tokens` with a rotated ✕ FAILED stamp and the drawer prints **"FAILED — savings void"**; hovering the stamp lists `PA-1004` and `MANUAL_REVIEW` as the missing facts.
 
 ### Step 4: The taxonomy map
 The module lists three lever taxonomies you'll meet in the wild (write/select/compress/isolate; add/compress/retrieve/offload; crop/compress/summarize/select). Assign each of the ten modes to all three taxonomies. Two won't fit cleanly (cached, routed) — note why: one optimizes *cost of position*, the other *chooses* levers.

@@ -85,7 +85,7 @@ export interface Member {
   planTier: 'STANDARD' | 'PREMIUM';
   planStatus: 'ACTIVE' | 'LAPSED';
   dob: string; // "_redacted" for PHI-minimized members
-  history: { requestId: string; procedureName: string; decision: Decision }[];
+  history: { id: string; procedureName: string; decision: Decision }[];
 }
 
 export interface Policy {

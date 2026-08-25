@@ -58,8 +58,8 @@ export function MemberDetailPage() {
           <h2>Authorization history</h2>
           {m.history.length === 0 && <p className="small muted">No requests yet.</p>}
           {m.history.map((h) => (
-            <div key={h.requestId} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
-              <Link to={`/requests/${h.requestId}`} className="mono small">{h.requestId}</Link>
+            <div key={h.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
+              <Link to={`/requests/${h.id}`} className="mono small">{h.id}</Link>
               <span className="small" style={{ flex: 1 }}>{h.procedureName}</span>
               <StatusPill decision={h.decision as Decision} />
             </div>

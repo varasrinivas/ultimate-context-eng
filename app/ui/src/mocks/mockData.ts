@@ -91,7 +91,7 @@ export const MEMBERS: Member[] = [
   planTier: m.planTier as Member['planTier'],
   planStatus: m.planStatus as Member['planStatus'],
   history: REQUESTS.filter((r) => r.memberId === m.id).map((r) => ({
-    requestId: r.id,
+    id: r.id,
     procedureName: r.procedureName,
     decision: r.decision,
   })),

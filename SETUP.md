@@ -13,7 +13,7 @@ cd app/api && ./mvnw spring-boot:run
 # frontend (port 5173, proxies /api to 8080)
 cd app/ui && npm install && npm run dev
 ```
-Open http://localhost:5173 — Review Queue → open PA-1002 → ask the Copilot a question → watch the **Token Lens**: the five-layer stacked bar, cost, cache badges, and the **correctness badge**. Flip strategy toggles and re-ask; pin two strategies in the **Compare drawer**.
+Open http://localhost:5173 — full walkthrough with screenshots in [course/app-guide.html](course/app-guide.html). Review Queue → open PA-1002 → ask the Copilot a question → watch the **Token Lens**: the five-layer stacked bar, cost, cache badges, and the **correctness badge**. Flip strategy toggles and re-ask; pin two strategies in the **Compare drawer**.
 
 Replay mode answers the 10 standing questions (and close paraphrases) from recorded fixtures with real recorded usage numbers; free-form questions get a deterministic "replay mode" notice. Set `ANTHROPIC_API_KEY` and `MEDFLOW_LIVE=1` to go live.
 

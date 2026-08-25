@@ -60,6 +60,19 @@ public class DomainController {
         return m;
     }
 
+    @GetMapping("/members")
+    public java.util.List<Map<String, Object>> memberList() {
+        return members.findAll().stream().map(m -> {
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("id", m.id);
+            out.put("name", m.name);
+            out.put("planTier", m.planTier);
+            out.put("planStatus", m.planStatus);
+            out.put("dob", m.dobRedacted() ? "REDACTED" : m.dob);
+            return out;
+        }).toList();
+    }
+
     @GetMapping("/members/{id}")
     public Map<String, Object> member(@PathVariable String id) {
         MemberEntity m = members.findById(id).orElseThrow(() ->

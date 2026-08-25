@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Using MedFlow Copilot — the App Behind the Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#f6f3ec; --surface:#ffffff; --text:#2c2a26; --muted:#6b6558; --line:#e4ddd0;
+        --accent:#4a6741; --warn:#c0392b; --amber:#b8860b; }
+html[data-theme="dark"] { --bg:#17150f; --surface:#211e17; --text:#ece7dc; --muted:#a49a88; --line:#3a352b; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:Inter,sans-serif; line-height:1.7; font-size:1.02rem; }
+.wrap { max-width:980px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+.eyebrow { font-family:'JetBrains Mono',monospace; font-size:.75rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); }
+h1 { font-family:Fraunces,serif; font-weight:700; font-size:clamp(1.9rem,4vw,2.7rem); line-height:1.15; margin:.4rem 0 1rem; }
+h1 em { font-style:italic; font-weight:300; }
+h2 { font-family:Fraunces,serif; font-weight:600; font-size:1.5rem; margin:2.6rem 0 .8rem; }
+h3 { font-family:Fraunces,serif; font-weight:600; font-size:1.15rem; margin:1.6rem 0 .5rem; }
+p { margin:.7rem 0; } code { font-family:'JetBrains Mono',monospace; font-size:.88em; background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:.08em .35em; }
+pre { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:1rem 1.2rem; overflow-x:auto; margin:.8rem 0; }
+pre code { border:none; background:none; padding:0; }
+figure { margin:1.2rem 0 1.8rem; }
+figure img { width:100%; border:1px solid var(--line); border-radius:12px; box-shadow:0 6px 24px rgba(44,42,38,.08); }
+figcaption { font-size:.88rem; color:var(--muted); margin-top:.5rem; }
+table { border-collapse:collapse; width:100%; margin:.8rem 0; font-size:.95rem; }
+th,td { border:1px solid var(--line); padding:.5rem .7rem; text-align:left; vertical-align:top; }
+th { background:var(--surface); font-family:'JetBrains Mono',monospace; font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
+.note { background:var(--surface); border-left:4px solid var(--accent); border-radius:0 10px 10px 0; padding:.9rem 1.1rem; margin:1.1rem 0; }
+.warn { border-left-color:var(--warn); }
+a { color:var(--accent); }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.6rem; }
+.topbar a { font-family:'JetBrains Mono',monospace; font-size:.85rem; text-decoration:none; border:1px solid var(--line); border-radius:8px; padding:.45rem .8rem; background:var(--surface); color:var(--text); }
+.mono { font-family:'JetBrains Mono',monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="index.html">← Course home</a>
+  <a href="#" onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'':'dark';return false;">◐ theme</a>
+</div>
+
+<div class="eyebrow">app guide · every call gets a receipt</div>
+<h1>Using MedFlow Copilot<br><em>the app behind the course</em></h1>
+<p>MedFlow Copilot is the course's lab bench: a prior-authorization portal where clinicians review requests — with an AI copilot whose every call produces a <strong>Token Receipt</strong>. This page is the operator's manual: how to run it, what each screen does, and how to read the instrument. All screenshots below are real captures of the running app in replay mode.</p>
+
+<h2 id="run">1 · Run it (no API key needed)</h2>
+<pre><code># terminal 1 — backend (port 8080, replay mode is the default)
+cd app/api && ./mvnw spring-boot:run
+
+# terminal 2 — frontend (port 5173)
+cd app/ui && npm install && npm run dev</code></pre>
+<p>Open <code>http://localhost:5173</code>. Replay mode answers the ten standing questions from recorded fixtures with deterministic usage numbers — the banner in the Copilot panel reminds you. Live mode: set <code>ANTHROPIC_API_KEY</code> and <code>MEDFLOW_LIVE=1</code> before starting the backend.</p>
+<div class="note">Frontend without a backend? <code>VITE_MOCK=1 npm run dev</code> runs a standalone demo with illustrative mock numbers — fine for UI exploration, but course labs use the real backend's replay numbers.</div>
+
+<h2 id="tour">2 · The screens</h2>
+
+<h3>Review Queue — where every session starts</h3>
+<figure><img src="assets/shot-1-queue.png" alt="Review queue with three manual-review requests and the Copilot panel">
+<figcaption>The Manual Review queue: requests that scored between the review (50) and approval (80) thresholds, each with its missing-criterion chips (PA-1002 · 65, PA-1004 · 65, PA-1010 · 50). The Copilot panel rides on the right of every screen.</figcaption></figure>
+
+<h3>The Copilot panel &amp; the Token Lens</h3>
+<figure><img src="assets/shot-2-receipt.png" alt="Token receipt for a naive-mode ask">
+<figcaption>Ask Q1 in <span class="mono">naive</span> mode and the receipt itemizes the bill: System 65 · Retrieved 1,612 · Tool 0 · History 0 · User 17 = <strong>1,694 input tokens</strong>, output, cost, cache %, latency — and the stamped verdict. The five layers always sum to the total; that reconciliation rule is the instrument's oath.</figcaption></figure>
+<table>
+<tr><th>Receipt element</th><th>Meaning</th></tr>
+<tr><td>Five layer lines</td><td>System prompt · retrieved domain data · tool results · conversation history · your question — the course's unit of account (U00–U01)</td></tr>
+<tr><td>✓ VERIFIED / ✗ FAILED / – UNGRADED</td><td>Graded against the standing question's answer key; hover a FAIL to see which facts went missing. Free-form questions are ungraded — and ungraded numbers can't prove savings claims.</td></tr>
+<tr><td>cache read %</td><td>How much of the input was served from prompt cache (the <span class="mono">cached</span> mode's whole story, U06)</td></tr>
+<tr><td>Session strip</td><td>Running total + per-call sparkline; watch it flatten under compaction modes (U08)</td></tr>
+</table>
+
+<h3>Strategy toggles — the curriculum as switches</h3>
+<figure><img src="assets/shot-3-okf.png" alt="okf-mode receipt for the same question">
+<figcaption>Same question, <span class="mono">okf</span> mode: the retrieved layer collapses to one canonical concept. Every toggle maps 1:1 to a course module.</figcaption></figure>
+<table>
+<tr><th>Mode</th><th>Strategy (module)</th><th>Median tokens*</th></tr>
+<tr><td class="mono">naive</td><td>the control — dump everything (U00)</td><td>1,696 · fails Q7</td></tr>
+<tr><td class="mono">budgeted</td><td>per-layer caps + eviction (U07)</td><td>560</td></tr>
+<tr><td class="mono">compressed</td><td>prune → extract → abstract + fidelity assert (U07)</td><td>231 · fails Q9</td></tr>
+<tr><td class="mono">cached</td><td>static-first + prompt caching (U06)</td><td>731 (cheap when warm)</td></tr>
+<tr><td class="mono">jit</td><td>just-in-time identifiers (U05)</td><td>251</td></tr>
+<tr><td class="mono">graph</td><td>provenance-tagged knowledge graph (U05)</td><td>444</td></tr>
+<tr><td class="mono">okf</td><td>canonical concept files (U05)</td><td>186</td></tr>
+<tr><td class="mono">notes</td><td>structured note-taking memory (U03)</td><td>198</td></tr>
+<tr><td class="mono">isolated</td><td>clean-window sub-agent (U09)</td><td>1,805 — isolation's honest single-question price</td></tr>
+<tr><td class="mono">routed</td><td>route-only-among-correct (U12)</td><td>239 at 100%</td></tr>
+</table>
+<p style="font-size:.85rem;color:var(--muted)">* medians across the 10 standing questions, replay mode (<span class="mono">source=synthetic-pre-recording</span>); regenerate with the U02 lab.</p>
+
+<h3>The Compare drawer — the money shot</h3>
+<figure><img src="assets/shot-4-compare.png" alt="Compare drawer: naive vs okf side by side">
+<figcaption>Pin a question, pick two strategies, and compare receipts on a shared scale — 1,694 vs 362 input tokens here, with both verdicts side by side. If an arm failed its key facts, the drawer prints <strong>“FAILED — savings void”</strong> instead of celebrating the delta.</figcaption></figure>
+
+<h3>Members — where the abstention story lives</h3>
+<figure><img src="assets/shot-5-members.png" alt="Members list with the redacted DOB badge">
+<figcaption>M-2003's date of birth is PHI-redacted. Ask the copilot for it in <span class="mono">okf</span> mode → a proper refusal (✓ PASS at 157 tokens). In <span class="mono">naive</span> mode the shipped teaching fixture fabricates a DOB and the stamp catches it (✗ FAIL, forbidden-pattern named) — module U10's exhibit.</figcaption></figure>
+
+<h3>Dark theme</h3>
+<figure><img src="assets/shot-6-dark.png" alt="The app in dark theme">
+<figcaption>The ◐ toggle persists per browser; every chart and receipt keeps its meaning in both themes.</figcaption></figure>
+
+<h2 id="workflow">3 · The five-minute working loop</h2>
+<pre><code>1. Pick a standing question (the preset dropdown — these are the graded ones)
+2. Ask it in naive         → read the receipt: where do the tokens live?
+3. Flip one strategy       → re-ask: which layer shrank? did the verdict hold?
+4. Compare the two         → the drawer shows the delta AND both verdicts
+5. Believe only ✓-stamped savings — a FAILED cheap answer is worth nothing</code></pre>
+
+<h2 id="trouble">4 · Troubleshooting</h2>
+<table>
+<tr><th>Symptom</th><th>Fix</th></tr>
+<tr><td>Copilot answers "replay mode" to free-form questions</td><td>Expected — replay covers the standing questions; go live for free-form (<code>ANTHROPIC_API_KEY</code> + <code>MEDFLOW_LIVE=1</code>)</td></tr>
+<tr><td>Receipt numbers differ from this page</td><td>You're in <code>VITE_MOCK=1</code> (illustrative numbers) — or fixtures were re-recorded live. The reconciliation rule holds either way.</td></tr>
+<tr><td>Port 8080/5173 busy</td><td>Stop the previous instance; the backend must be restarted after fixtures change (U11's startup-cache lesson)</td></tr>
+<tr><td>Layers don't sum to the total</td><td>They must — file a bug; that invariant is test-enforced (<code>ReceiptReconciliationTest</code>) and the U00 lab's auditor will catch it</td></tr>
+</table>
+
+<div class="note warn"><strong>Provenance reminder:</strong> replay-mode numbers are deterministic <span class="mono">synthetic-pre-recording</span> fixtures — correct by construction, honest about their source. Recording live fixtures (one command, ~$2) upgrades every receipt to real model usage; the course's claims are framed so they survive either way.</div>
+
+<p style="margin-top:2.2rem"><a href="index.html">← Back to the course</a> · Start with <a href="index.html" onclick="localStorage.setItem('ce-open','U00')">U00 — your first receipt</a> · Full setup: <span class="mono">SETUP.md</span></p>
+</div>
+</body>
+</html>

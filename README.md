@@ -20,6 +20,6 @@ A 15-module course whose outcome is that you **excel at context engineering** �
 | `docs/` | canon, curriculum map |
 
 ## Start
-`SETUP.md` — the app runs keyless in replay mode. Course: open `course/index.html`, begin at U00.
+`SETUP.md` — the app runs keyless in replay mode. App walkthrough with real screenshots: `course/app-guide.html`. Course: open `course/index.html`, begin at U00.
 
 Parent courses: [`../context-eng-kit`](../context-eng-kit) (fundamentals) · [`../knowledge-graph`](../knowledge-graph) (structural context & benchmarking).

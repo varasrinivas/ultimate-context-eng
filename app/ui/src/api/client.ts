@@ -44,6 +44,8 @@ export const api = {
       body: JSON.stringify({ question, mode, sessionId: getSessionId() }),
     });
     if (!res.ok) throw new Error(`Copilot ask failed: ${res.status} ${res.statusText}`);
-    return res.json() as Promise<AskResponse>;
+    // live backend wraps in {primary, compare}; mock returns the flat shape
+    const data = await res.json();
+    return (data.primary ?? data) as AskResponse;
   },
 };

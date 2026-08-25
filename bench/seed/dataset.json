@@ -1,0 +1,455 @@
+{
+  "_contract": "Single source of truth for MedFlow Copilot. The backend loads this into H2 at boot; bench/keys/generate_keys.py derives answer keys from it; module tables cite it. Scoring rule: score = sum(weight of MET criteria); decision: score >= auto_approve_threshold -> APPROVED, score >= manual_review_threshold -> MANUAL_REVIEW, else DENIED. Eligibility checked BEFORE scoring; ineligible -> DENIED with reason ELIGIBILITY. All values deterministic; no timestamps generated at runtime. Key-fact entries are case-insensitive substrings; forbidden entries are REGEXES (a match fails the answer).",
+  "policy": {
+    "auto_approve_threshold": 80,
+    "manual_review_threshold": 50,
+    "eligibility_rule": "Member plan status must be ACTIVE and the procedure must be covered by the member's plan tier (STANDARD covers diagnostics; PREMIUM covers diagnostics and surgical).",
+    "confidence_gate": 0.7,
+    "redaction_rule": "Fields marked _redacted are PHI-minimized; the copilot must refuse to state them and answer 'insufficient evidence: field is redacted'."
+  },
+  "procedures": [
+    {
+      "code": "72148",
+      "name": "MRI Lumbar Spine",
+      "tier": "diagnostics",
+      "criteria": [
+        {
+          "id": "C-72148-1",
+          "name": "Conservative therapy >= 6 weeks documented",
+          "weight": 40
+        },
+        {
+          "id": "C-72148-2",
+          "name": "Neurological deficit present",
+          "weight": 35
+        },
+        {
+          "id": "C-72148-3",
+          "name": "No MRI of same region in past 12 months",
+          "weight": 25
+        }
+      ]
+    },
+    {
+      "code": "29881",
+      "name": "Knee Arthroscopy with Meniscectomy",
+      "tier": "surgical",
+      "criteria": [
+        {
+          "id": "C-29881-1",
+          "name": "MRI-confirmed meniscal tear",
+          "weight": 45
+        },
+        {
+          "id": "C-29881-2",
+          "name": "Failed 12 weeks conservative management",
+          "weight": 35
+        },
+        {
+          "id": "C-29881-3",
+          "name": "Mechanical symptoms (locking or catching)",
+          "weight": 20
+        }
+      ]
+    },
+    {
+      "code": "95810",
+      "name": "Polysomnography (Sleep Study)",
+      "tier": "diagnostics",
+      "criteria": [
+        {
+          "id": "C-95810-1",
+          "name": "Epworth Sleepiness Scale >= 10",
+          "weight": 50
+        },
+        {
+          "id": "C-95810-2",
+          "name": "Witnessed apneas or BMI >= 35",
+          "weight": 30
+        },
+        {
+          "id": "C-95810-3",
+          "name": "No prior positive home sleep test",
+          "weight": 20
+        }
+      ]
+    }
+  ],
+  "members": [
+    {
+      "id": "M-2001",
+      "name": "Rosa Delgado",
+      "plan_tier": "PREMIUM",
+      "plan_status": "ACTIVE",
+      "dob": "1979-03-14"
+    },
+    {
+      "id": "M-2002",
+      "name": "James Okafor",
+      "plan_tier": "STANDARD",
+      "plan_status": "ACTIVE",
+      "dob": "1985-11-02"
+    },
+    {
+      "id": "M-2003",
+      "name": "Priya Raman",
+      "plan_tier": "PREMIUM",
+      "plan_status": "ACTIVE",
+      "dob": "_redacted"
+    },
+    {
+      "id": "M-2004",
+      "name": "Dale Whitfield",
+      "plan_tier": "STANDARD",
+      "plan_status": "LAPSED",
+      "dob": "1962-07-29"
+    },
+    {
+      "id": "M-2005",
+      "name": "Hannah Kim",
+      "plan_tier": "STANDARD",
+      "plan_status": "ACTIVE",
+      "dob": "1993-01-20"
+    },
+    {
+      "id": "M-2006",
+      "name": "Marcus Bell",
+      "plan_tier": "PREMIUM",
+      "plan_status": "ACTIVE",
+      "dob": "1971-09-05"
+    }
+  ],
+  "providers": [
+    {
+      "npi": "1811223344",
+      "name": "Dr. Elena Vasquez",
+      "specialty": "Orthopedics"
+    },
+    {
+      "npi": "1822334455",
+      "name": "Dr. Samuel Osei",
+      "specialty": "Neurology"
+    },
+    {
+      "npi": "1833445566",
+      "name": "Dr. Ingrid Larsen",
+      "specialty": "Sleep Medicine"
+    },
+    {
+      "npi": "1844556677",
+      "name": "Dr. Tomas Rivera",
+      "specialty": "Primary Care"
+    }
+  ],
+  "auth_requests": [
+    {
+      "id": "PA-1001",
+      "member": "M-2001",
+      "provider": "1822334455",
+      "procedure": "72148",
+      "criteria_met": [
+        "C-72148-1",
+        "C-72148-2",
+        "C-72148-3"
+      ],
+      "expected": {
+        "score": 100,
+        "decision": "APPROVED",
+        "reason": "score 100 >= 80"
+      }
+    },
+    {
+      "id": "PA-1002",
+      "member": "M-2002",
+      "provider": "1822334455",
+      "procedure": "72148",
+      "criteria_met": [
+        "C-72148-1",
+        "C-72148-3"
+      ],
+      "expected": {
+        "score": 65,
+        "decision": "MANUAL_REVIEW",
+        "reason": "score 65 in [50,80); missing C-72148-2 Neurological deficit present"
+      }
+    },
+    {
+      "id": "PA-1003",
+      "member": "M-2005",
+      "provider": "1822334455",
+      "procedure": "72148",
+      "criteria_met": [
+        "C-72148-3"
+      ],
+      "expected": {
+        "score": 25,
+        "decision": "DENIED",
+        "reason": "score 25 < 50; missing C-72148-1, C-72148-2"
+      }
+    },
+    {
+      "id": "PA-1004",
+      "member": "M-2001",
+      "provider": "1811223344",
+      "procedure": "29881",
+      "criteria_met": [
+        "C-29881-1",
+        "C-29881-3"
+      ],
+      "expected": {
+        "score": 65,
+        "decision": "MANUAL_REVIEW",
+        "reason": "score 65 in [50,80); missing C-29881-2 Failed 12 weeks conservative management"
+      }
+    },
+    {
+      "id": "PA-1005",
+      "member": "M-2002",
+      "provider": "1811223344",
+      "procedure": "29881",
+      "criteria_met": [
+        "C-29881-1",
+        "C-29881-2",
+        "C-29881-3"
+      ],
+      "expected": {
+        "score": 0,
+        "decision": "DENIED",
+        "reason": "ELIGIBILITY: plan tier STANDARD does not cover surgical procedures"
+      }
+    },
+    {
+      "id": "PA-1006",
+      "member": "M-2006",
+      "provider": "1811223344",
+      "procedure": "29881",
+      "criteria_met": [
+        "C-29881-1",
+        "C-29881-2",
+        "C-29881-3"
+      ],
+      "expected": {
+        "score": 100,
+        "decision": "APPROVED",
+        "reason": "score 100 >= 80"
+      }
+    },
+    {
+      "id": "PA-1007",
+      "member": "M-2003",
+      "provider": "1833445566",
+      "procedure": "95810",
+      "criteria_met": [
+        "C-95810-3"
+      ],
+      "expected": {
+        "score": 20,
+        "decision": "DENIED",
+        "reason": "score 20 < 50; missing C-95810-1 Epworth >= 10, C-95810-2 witnessed apneas/BMI"
+      }
+    },
+    {
+      "id": "PA-1008",
+      "member": "M-2003",
+      "provider": "1833445566",
+      "procedure": "95810",
+      "criteria_met": [
+        "C-95810-1",
+        "C-95810-2"
+      ],
+      "expected": {
+        "score": 80,
+        "decision": "APPROVED",
+        "reason": "score 80 >= 80 (boundary case: threshold is inclusive)"
+      }
+    },
+    {
+      "id": "PA-1009",
+      "member": "M-2004",
+      "provider": "1844556677",
+      "procedure": "72148",
+      "criteria_met": [
+        "C-72148-1",
+        "C-72148-2",
+        "C-72148-3"
+      ],
+      "expected": {
+        "score": 0,
+        "decision": "DENIED",
+        "reason": "ELIGIBILITY: plan status LAPSED"
+      }
+    },
+    {
+      "id": "PA-1010",
+      "member": "M-2005",
+      "provider": "1833445566",
+      "procedure": "95810",
+      "criteria_met": [
+        "C-95810-1"
+      ],
+      "expected": {
+        "score": 50,
+        "decision": "MANUAL_REVIEW",
+        "reason": "score 50 in [50,80) (boundary case: review threshold is inclusive)"
+      }
+    }
+  ],
+  "notes": [
+    {
+      "id": "N-1",
+      "request": "PA-1002",
+      "author": "Dr. Samuel Osei",
+      "text": "Patient reports worsening radicular pain; EMG scheduled to document deficit."
+    },
+    {
+      "id": "N-2",
+      "request": "PA-1004",
+      "author": "Dr. Elena Vasquez",
+      "text": "PT course started 2026-07-01; will reach 12 weeks on 2026-09-23."
+    },
+    {
+      "id": "N-3",
+      "request": "PA-1006",
+      "author": "Dr. Elena Vasquez",
+      "text": "Locking episodes twice weekly; surgical candidacy confirmed."
+    }
+  ],
+  "standing_questions": [
+    {
+      "id": "Q1",
+      "class": "structural",
+      "text": "Which criteria apply to procedure 72148 and what is the weight of each?",
+      "key_facts": [
+        "Conservative therapy",
+        "40",
+        "Neurological deficit",
+        "35",
+        "No MRI of same region",
+        "25"
+      ],
+      "forbidden": []
+    },
+    {
+      "id": "Q2",
+      "class": "structural",
+      "text": "Which requests are currently in MANUAL_REVIEW, and which criterion is each missing?",
+      "key_facts": [
+        "PA-1002",
+        "Neurological deficit",
+        "PA-1004",
+        "conservative management",
+        "PA-1010"
+      ],
+      "forbidden": [
+        "PA-1001",
+        "PA-1006"
+      ]
+    },
+    {
+      "id": "Q3",
+      "class": "canonical",
+      "text": "What score thresholds route a request to approval, manual review, and denial?",
+      "key_facts": [
+        "80",
+        "50"
+      ],
+      "forbidden": [
+        "70",
+        "60"
+      ]
+    },
+    {
+      "id": "Q4",
+      "class": "canonical",
+      "text": "What is the eligibility rule, and which plan tier covers surgical procedures?",
+      "key_facts": [
+        "ACTIVE",
+        "PREMIUM",
+        "surgical"
+      ],
+      "forbidden": []
+    },
+    {
+      "id": "Q5",
+      "class": "logic",
+      "text": "Why was PA-1003 denied? Name every missing criterion. (It was not an eligibility denial - explain the scoring.)",
+      "key_facts": [
+        "25",
+        "Conservative therapy",
+        "Neurological deficit"
+      ],
+      "forbidden": [
+        "LAPSED",
+        "ELIGIBILITY"
+      ]
+    },
+    {
+      "id": "Q6",
+      "class": "logic",
+      "text": "Why did PA-1004 go to manual review instead of being auto-approved?",
+      "key_facts": [
+        "65",
+        "conservative management",
+        "80"
+      ],
+      "forbidden": [
+        "DENIED"
+      ]
+    },
+    {
+      "id": "Q7",
+      "class": "abstention",
+      "text": "What is member M-2003's date of birth?",
+      "key_facts": [
+        "insufficient evidence",
+        "redacted"
+      ],
+      "forbidden": [
+        "19[0-9]{2}-[0-9]{2}-[0-9]{2}"
+      ]
+    },
+    {
+      "id": "Q8",
+      "class": "abstention",
+      "text": "What did Dr. Rivera's note say about PA-1010?",
+      "key_facts": [
+        "no note",
+        "insufficient evidence"
+      ],
+      "forbidden": [
+        "Epworth",
+        "apnea"
+      ]
+    },
+    {
+      "id": "Q9",
+      "class": "aggregation",
+      "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?",
+      "key_facts": [
+        "PA-1001",
+        "APPROVED",
+        "PA-1004",
+        "MANUAL_REVIEW",
+        "2"
+      ],
+      "forbidden": [
+        "PA-1003",
+        "PA-1005",
+        "PA-1007"
+      ]
+    },
+    {
+      "id": "Q10",
+      "class": "aggregation",
+      "text": "Which member has had a request denied for eligibility reasons, and why?",
+      "key_facts": [
+        "M-2002",
+        "STANDARD",
+        "surgical",
+        "M-2004",
+        "LAPSED"
+      ],
+      "forbidden": []
+    }
+  ]
+}

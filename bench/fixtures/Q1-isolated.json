@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q1",
+  "mode" : "isolated",
+  "answer" : "Procedure 72148 (MRI Lumbar Spine) has 3 criteria: Conservative therapy >= 6 weeks documented (weight 40); Neurological deficit present (weight 35); No MRI of same region in past 12 months (weight 25).",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 143,
+    "output_tokens" : 50,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

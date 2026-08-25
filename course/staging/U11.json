@@ -1,0 +1,72 @@
+{
+  "id": "U11",
+  "track": 4,
+  "title": "Rot at Two Altitudes",
+  "subtitle": "Context goes stale in the window AND underneath it — transcript rot vs infrastructure rot, and the gates that catch each within a day",
+  "icon": "🎯",
+  "color": "#c0392b",
+  "topics": [
+    "Transcript rot — stale turns, superseded instructions, resolved detours in the window",
+    "Infrastructure rot — derived artifacts (keys, fixtures, UI mirrors) drifting from their source",
+    "The derived-fact rule — an artifact inherits the shortest shelf life of what it depends on",
+    "Freshness gates and drift attribution — detect staleness mechanically, name the cause",
+    "Competency built: GOVERN TRUTH (outcome 5 of 6)"
+  ],
+  "analogy": {
+    "title": "Milk in Two Refrigerators",
+    "text": "A restaurant checks the milk in the kitchen fridge every morning — that's the fridge everyone remembers, because the smell announces the failure. But the walk-in cooler in the basement holds the cream the kitchen fridge gets restocked from, and if THAT spoils, every 'fresh' carton upstairs is quietly wrong with no smell at all. A conversation transcript is the kitchen fridge: rot accumulates visibly, turn by turn. Your answer keys, replay fixtures, and UI data mirrors are the walk-in cooler: derived from a source of truth, and when the source changes, they don't smell — they just keep serving yesterday's cream with today's confidence."
+  },
+  "antiPatterns": [
+    "Compacting the transcript while the seed drifts — you cured the visible rot and shipped the invisible one",
+    "Hand-editing a derived artifact (a key, a fixture, a mirror) — now two sources of truth exist and every future change forks reality",
+    "Freshness checks that only verify 'the job ran' — a rebuild that reads success while producing stale output is the exact failure the check exists for"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Altitude One: Rot in the Window",
+      "body": "<p><strong>Context rot</strong> is quality degradation from accumulated stale, contradictory, or low-relevance content — and you can hit it well below the token limit, because the failure axis is signal-to-noise, not size (see the rot literature in <code>docs/canon.md</code>). In a long MedFlow session the transcript accumulates resolved detours ('ignore the eligibility question, that was answered'), superseded instructions, and duplicate tool dumps. The cure at this altitude is <strong>compaction</strong> (U08): distill, preserve decisions and open issues, discard the rest — and you watched the session sparkline flatten when you applied it.</p><p>Transcript rot is the altitude everyone knows, because it happens in front of you. This module exists for the altitude that doesn't.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Altitude Two: Rot Underneath the Window",
+      "body": "<p>Open <code>bench/seed/dataset.json</code> and count what derives from it: the H2 database the backend serves, the answer keys the grader uses, the replay fixtures, the frontend's <code>standingQuestions.ts</code> and mock-data mirrors, and every measured table in this course. That file is the walk-in cooler. Change one criterion weight — say <code>C-72148-2</code> from 35 to 30 — and PA-1002's score silently becomes 60, PA-1001's becomes 95, and <em>every downstream artifact is now stale while looking perfectly healthy</em>.</p><p>The kit's M14 stated the law this course runs on: <strong>a derived fact inherits the shortest shelf life of what it depends on</strong>. Your fixtures aren't 'valid until edited' — they're valid until the seed changes. The knowledge-graph course found the same law governing code graphs (a graph is a derived fact over source files), and met the nastiest version of it: <a href=\"../../knowledge-graph/output/M11-drift-staleness-observability.html\">rebuild hooks that fail with a green exit code</a>. Its rule transfers verbatim: <em>if you can't say, mechanically, how you'd detect staleness within 24 hours, you have a demo that hasn't failed yet.</em></p>"
+    },
+    {
+      "type": "content",
+      "title": "Gates and Attribution",
+      "body": "<p>The defense is mechanical, and this repo ships it: <code>bench/keys/generate_keys.py</code> is a <strong>freshness gate</strong> — it recomputes every determination from the seed's own scoring rule and refuses (exit 1, naming each broken request) if the stored expectations disagree. Run it after ANY seed change; wire it before campaigns in CI. The backend's golden-determination test is the same gate at a second altitude — two independent instruments, one contract.</p><p>Detection is half the job; the other half is <strong>drift attribution</strong> (the kit's M30): when a measured table changes, name the cause — seed change, mode implementation change, or model change — before accepting the new numbers. The receipt's <code>source</code> field exists for this: <code>synthetic-pre-recording</code> vs live-recorded numbers are different provenance classes, and a table that silently mixes them is itself a rotted artifact. In MedFlow, a stale grid doesn't crash anything: it grades today's answers against yesterday's truth, which is the walk-in cooler serving spoiled cream through a fridge that smells fine.</p>"
+    },
+    {
+      "type": "code",
+      "title": "The Seed-Change Drill",
+      "language": "python",
+      "code": "# The U11 drill, runnable today (uses a COPY — never drill on the real seed):\n#   1. copy bench/seed/dataset.json somewhere safe\n#   2. edit the copy: C-72148-2 weight 35 -> 30\n#   3. point the gate at it and watch it refuse:\n#\n#   $ python bench/keys/generate_keys.py     # against the tampered seed\n#   CONTRACT BROKEN:\n#     PA-1001: computed (95,APPROVED) != expected (100,APPROVED)\n#     PA-1002: computed (60,MANUAL_REVIEW) != expected (65,MANUAL_REVIEW)\n#     ...\n#\n# The gate names every derived fact the change invalidated - that list IS\n# your blast radius. Restore the original and it returns to:\n#   contract consistent (10 determinations verified); 10 keys -> keys.json"
+    },
+    {
+      "type": "quiz",
+      "question": "A teammate updates dataset.json to add a fourth criterion to procedure 72148, reruns the app, and everything works — queue renders, copilot answers, receipts reconcile. WHY is the course's grid still now untrustworthy until the gates rerun?",
+      "options": [
+        "A. It isn't — the app working proves the change was compatible",
+        "B. Because the answer keys, fixtures, and measured tables were derived from the OLD seed: the grader now checks answers against expectations the source no longer supports, so a PASS no longer means correct — the derived facts inherited the seed's shelf life and it just expired",
+        "C. Because adding criteria always requires renumbering the standing questions",
+        "D. Because H2 is in-memory and loses the new criterion on restart"
+      ],
+      "correct": 1,
+      "explanation": "Nothing crashes — that's the signature of altitude-two rot. The app serves the new seed, but Q1's key facts still describe three criteria, fixtures still answer with three, and the tables cite superseded numbers. 'Working' and 'true' diverged the moment the source changed. The drill's gate (generate_keys.py) plus fixture regeneration is the restock protocol; until they run, every green stamp is the fridge that smells fine upstairs."
+    },
+    {
+      "type": "antipattern",
+      "title": "How Staleness Ships",
+      "items": [
+        "The green-exit-code trap: your regeneration job 'succeeded' but produced yesterday's output — verify freshness by comparing content-derived facts, never job status (the knowledge-graph course paid for this lesson twice).",
+        "Mixed-provenance tables: half the cells re-measured after a change, half quoted from before it — the table is internally inconsistent and no reader can tell.",
+        "Drilling on production truth: practicing the seed-change drill on the real dataset.json and forgetting to restore — the drill itself becomes the drift incident."
+      ]
+    }
+  ],
+  "takeaway": "Context rots at two altitudes — visibly in the transcript and silently in everything derived from your sources of truth — and only the second one needs a mechanical gate, because a derived fact inherits the shortest shelf life of its dependencies and expires without a smell.",
+  "labUnderstand": "Inventory every artifact derived from dataset.json (keys, fixtures, H2 load, UI mirrors, course tables), then trace one hypothetical weight change through the dependency chain by hand and rank which stale artifact would cause the worst silent harm.",
+  "labBuild": "Run the seed-change drill with Claude: tamper a criterion weight in a COPY of the seed, watch generate_keys.py refuse with the exact blast radius, extend the gate to also flag fixtures older than the seed's mtime, and restore — proving detection-within-a-day in under a minute."
+}

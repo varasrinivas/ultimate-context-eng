@@ -1,0 +1,93 @@
+{
+  "id": "U08",
+  "track": 3,
+  "title": "Long Horizons — Compaction & Notes",
+  "subtitle": "Sessions rot before windows fill: compaction that preserves decisions, and notes that move memory out of the window entirely",
+  "icon": "🗜️",
+  "color": "#b8860b",
+  "topics": [
+    "Context pressure — why append-only sessions degrade long before the limit",
+    "Compaction — distill history into a summary that keeps decisions and open issues",
+    "What compaction must preserve — decisions, unresolved questions, load-bearing ids",
+    "Structured note-taking — the write strategy as persistent external memory",
+    "Choosing between them — conversational continuity vs milestone iteration"
+  ],
+  "analogy": {
+    "title": "The Detective's Case Board",
+    "text": "A detective's desk accumulates everything — transcripts, coffee-stained tips, three copies of the same alibi. By week two the desk is unusable: not because it's full, but because the signal is buried, and she re-interviews a witness she already cleared. So twice a day she rewrites the case board: suspects ruled out (with why), open leads, the exact license plate — and clears the desk. The board is compaction. Her notebook — filed at the precinct, survives even if the desk burns — is note-taking. The desk is your context window; the skill is knowing what goes on the board, what goes in the notebook, and what goes in the bin."
+  },
+  "antiPatterns": [
+    "Append-only sessions — every turn and tool dump accumulates until the goal is buried mid-window; the model re-asks answered questions (the kit's M24 lab watches a step get redone)",
+    "Compaction that keeps the wrong things — summarizing the pleasantries and dropping 'PA-1004 is still unresolved' preserves tone and loses the case",
+    "Notes nobody reads back — writing memory without a retrieval habit is a diary, not a memory system; the write strategy is only half of write/select"
+  ],
+  "crosslinks": [
+    {"type": "kit", "label": "Kit M12 — Conversation History Management"},
+    {"type": "kit", "label": "Kit M24 — Agent Loop Context (pressure)"},
+    {"type": "kg", "label": "KG M02B — the poisoned transcript, fixed four ways"}
+  ],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Pressure, Not Capacity, Is the Enemy",
+      "body": "<p>Ask MedFlow's copilot ten questions in <code>naive</code> mode and watch the session strip: every call re-carries the growing transcript, and the <em>history</em> layer climbs while answer quality has nowhere to go but down. This is <strong>context rot</strong> in its session form — 'performance degradation as context expands, despite increased data availability' [ANTHROPIC-CE] — and the literature is blunt that it starts well below the window limit [ROT-LIT]. The failure signal is signal-to-noise, not size.</p><p>The session strip's sparkline makes pressure visible: naive slopes upward forever. The two techniques in this module exist to bend that curve flat.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Compaction: Rewrite the Case Board",
+      "body": "<p>Compaction distills the transcript-so-far into a compact summary and replaces the raw history with it. What must survive is precise [ANTHROPIC-CE]: <strong>decisions made</strong> ('PA-1002 needs the EMG before re-scoring'), <strong>open issues</strong> ('awaiting Dr. Osei's note'), and <strong>load-bearing identifiers</strong> — while redundant tool dumps and resolved detours are exactly what gets discarded. Notice this is U07's ladder applied to history: prune the resolved, extract the decisions verbatim, abstract the chatter — and the same fidelity discipline applies.</p><p>The parent KG course's M02B lab measured this shape on a rotted transcript: raw 3,131 tokens → compressed 1,551 at full key-fact survival. Compaction is not optional hygiene for long sessions; it is the difference between a session that converges and one that buries its own goal.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Notes: Memory Outside the Window",
+      "body": "<p>The <code>notes</code> mode goes further: after each answer it writes structured notes — facts established, per member and request — to a store <em>outside the window</em>, and subsequent asks load relevant notes instead of replaying the transcript. That is the canonical <strong>write</strong> strategy [LC-WSCI]: 'saving it outside the context window to help the agent perform the task,' then selecting it back on demand.</p><p>The receipts show the payoff: notes answers Q1 at <strong>141 tokens</strong> and holds a <strong>198 median across all ten questions</strong> at 100% correctness (replay grid) — because a note like <code>M-2001: PA-1001 APPROVED, PA-1004 MANUAL_REVIEW</code> is smaller than the conversation that established it. Notes survive what history cannot: the session strip flattens, and the memory would survive even a fresh session. The parent KG course's OKF <code>log.md</code> is this same pattern at repository scale.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Which One, When",
+      "body": "<p>Anthropic's task-context alignment table gives the decision rule [ANTHROPIC-CE]: <strong>compaction</strong> fits extensive back-and-forth needing conversational continuity — the thread matters, so distill it. <strong>Note-taking</strong> fits iterative work with identifiable milestones — a review queue worked one request at a time, where established facts matter but the conversation that established them does not. (The third column, sub-agent isolation, is U09.)</p><p>In MedFlow terms: a clinician debating one borderline determination wants compaction; a reviewer clearing the queue wants notes. Both bend the pressure curve; they differ in what they promise to preserve — the <em>thread</em> versus the <em>facts</em>.</p>"
+    },
+    {
+      "type": "code",
+      "title": "A Compactor That Keeps What Matters",
+      "language": "python",
+      "code": "# Compaction = U07's ladder applied to conversation history.\n# (Numbers cited: bench/results/fullgrid-compact.csv, synthetic-pre-recording.)\n\ndef compact(turns: list[dict], keep_recent: int = 2) -> list[dict]:\n    old, recent = turns[:-keep_recent], turns[-keep_recent:]\n\n    decisions  = [t[\"text\"] for t in old if t.get(\"kind\") == \"decision\"]\n    open_items = [t[\"text\"] for t in old if t.get(\"kind\") == \"open\"]\n    # resolved detours and raw tool dumps are the compaction target\n    dropped    = sum(1 for t in old if t.get(\"kind\") in (\"chatter\", \"tool_dump\", \"resolved\"))\n\n    board = (\"CASE BOARD (compacted):\\n\"\n             + \"DECISIONS:\\n  \" + \"\\n  \".join(decisions or [\"none\"]) + \"\\n\"\n             + \"OPEN:\\n  \" + \"\\n  \".join(open_items or [\"none\"])\n             + f\"\\n({dropped} routine turns discarded)\")\n\n    # fidelity, U07-style: decisions and open items survive verbatim\n    for t in old:\n        if t.get(\"kind\") in (\"decision\", \"open\"):\n            assert t[\"text\"] in board, f\"compaction lost: {t['text']!r}\"\n    return [{\"kind\": \"summary\", \"text\": board}] + recent\n\nturns = [\n    {\"kind\": \"chatter\",  \"text\": \"hi, looking at the queue\"},\n    {\"kind\": \"tool_dump\", \"text\": \"...4KB of raw queue JSON...\"},\n    {\"kind\": \"decision\", \"text\": \"PA-1002: wait for EMG before re-scoring\"},\n    {\"kind\": \"resolved\", \"text\": \"eligibility confusion - resolved, tier covers it\"},\n    {\"kind\": \"open\",     \"text\": \"PA-1004: conservative-mgmt window ends 2026-09-23\"},\n    {\"kind\": \"chatter\",  \"text\": \"ok next\"},\n    {\"kind\": \"decision\", \"text\": \"PA-1010: borderline 50 - keep in review\"},\n]\nfor t in compact(turns):\n    print(t[\"text\"][:80])\n# Seven turns become one board + two recent turns. The assertion is the\n# case board's nurse-check: lose an open item and it refuses to ship."
+    },
+    {
+      "type": "quiz",
+      "question": "A 40-turn review session starts re-asking questions answered at turn 6, at only ~60% window utilization. WHY does adding more window not fix this?",
+      "options": [
+        "A. It would fix it — the window is simply too small",
+        "B. The failure is signal-to-noise, not capacity: the answer at turn 6 is buried under 34 turns of accumulation, and a bigger window just buries it deeper — the fix is compaction or notes, not headroom",
+        "C. The model's memory expires after 30 turns",
+        "D. Re-asking is correct behavior for freshness"
+      ],
+      "correct": 1,
+      "explanation": "Context rot bites below the limit [ROT-LIT]; the kit's M24 lab watches an append-only loop redo a completed step for exactly this reason. Pressure is cured by changing what the window carries — the case board, not a bigger desk."
+    },
+    {
+      "type": "quiz",
+      "question": "A reviewer clears the queue one request at a time across a long shift. WHEN is notes mode the better fit than compaction?",
+      "options": [
+        "A. Never — compaction preserves more",
+        "B. Here — milestone-style work needs the established facts (statuses, scores) but not the conversational thread; notes carry facts at ~198 median tokens while compaction still re-carries a distilled thread",
+        "C. Only if the API key has no cache access",
+        "D. When answers must cite the conversation verbatim"
+      ],
+      "correct": 1,
+      "explanation": "Task-context alignment [ANTHROPIC-CE]: compaction ↔ conversational continuity, notes ↔ identifiable milestones. Queue-clearing is milestones; the note 'M-2001: PA-1001 APPROVED, PA-1004 MANUAL_REVIEW' outlives and out-compresses the thread that established it (Q9 notes: 167 tok, PASS — replay grid)."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Compacting at the cliff — waiting until the window is nearly full means the compactor itself runs in a degraded context; compact on a cadence, not in a panic",
+        "Self-summarization in place — asking the main model to summarize the very context it is drowning in; run compaction as its own clean call (the kit's M12 gotcha)",
+        "Note sprawl — appending every observation turns the notebook into a second rotting window; notes are structured facts, not a transcript copy"
+      ]
+    }
+  ],
+  "takeaway": "Long sessions are saved by changing what the window carries — compact the thread when continuity matters, write notes when only the facts do — and the pressure curve on the session strip tells you it worked.",
+  "labUnderstand": "Run the same 6-question review session in naive and notes modes and watch the two sparklines: naive's climbs monotonically while notes flattens near ~200 tokens per call. You annotate exactly which layer stopped growing and why.",
+  "labBuild": "With Claude writing the code, build session_pressure.py: replay a scripted 8-turn session in both modes, chart per-call history-layer tokens, then add a compactor with the decisions/open-items fidelity assertion. Break it on purpose by compacting away an open item and watch the assertion refuse."
+}

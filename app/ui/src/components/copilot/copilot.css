@@ -1,0 +1,53 @@
+.copilot {
+  display: flex; flex-direction: column; height: 100%;
+  border-left: 1px solid var(--line); background: var(--surface);
+}
+.copilot-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
+}
+.copilot-body { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+.mode-bar { display: flex; flex-wrap: wrap; gap: 4px; }
+.mode-btn {
+  font-family: var(--font-mono); font-size: 0.7rem;
+  padding: 3px 8px; border-radius: 5px;
+  border: 1px solid var(--line); background: transparent; color: var(--ink-2);
+}
+.mode-btn:hover { border-color: var(--accent); color: var(--ink); }
+.mode-btn.active {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.ask-box { display: flex; flex-direction: column; gap: 6px; }
+.ask-box select, .ask-box textarea {
+  font-family: var(--font-body); font-size: 0.84rem;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--ink); padding: 7px 9px;
+}
+.ask-box textarea { resize: vertical; min-height: 54px; }
+.ask-actions { display: flex; gap: 8px; align-items: center; }
+.ask-submit {
+  font-family: var(--font-display); font-weight: 600; font-size: 0.82rem;
+  background: var(--accent); color: var(--accent-ink);
+  border: none; border-radius: var(--radius-sm); padding: 7px 16px;
+}
+.ask-compare {
+  font-size: 0.78rem; background: transparent; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 6px 12px;
+}
+
+.answer-card {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+.answer-q { font-weight: 600; margin-bottom: 4px; font-size: 0.8rem; }
+
+.replay-banner {
+  font-size: 0.72rem; font-family: var(--font-mono);
+  background: var(--accent-wash); color: var(--ink-2);
+  border-bottom: 1px solid var(--line);
+  padding: 4px 14px;
+}

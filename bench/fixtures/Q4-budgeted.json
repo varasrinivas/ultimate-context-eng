@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q4",
+  "mode" : "budgeted",
+  "answer" : "Eligibility: Member plan status must be ACTIVE and the procedure must be covered by the member's plan tier (STANDARD covers diagnostics; PREMIUM covers diagnostics and surgical). In short: the plan must be ACTIVE, and only the PREMIUM tier covers surgical procedures.",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 561,
+    "output_tokens" : 66,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

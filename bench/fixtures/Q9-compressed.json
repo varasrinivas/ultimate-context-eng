@@ -1,0 +1,13 @@
+{
+  "question_id": "Q9",
+  "mode": "compressed",
+  "answer": "Member M-2001 (Rosa Delgado) has 2 authorization requests: PA-1001 was APPROVED. Her history shows consistent approvals.",
+  "source": "synthetic-teaching-failure",
+  "teaching_note": "Deliberately drops PA-1004 (MANUAL_REVIEW) - the abstraction-lost-a-load-bearing-fact failure the fidelity assertion exists to catch. Labeled synthetic.",
+  "usage": {
+    "input_tokens": 208,
+    "output_tokens": 26,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 0
+  }
+}

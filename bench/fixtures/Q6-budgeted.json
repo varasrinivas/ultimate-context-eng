@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q6",
+  "mode" : "budgeted",
+  "answer" : "PA-1004 scored 65 and was MANUAL_REVIEW: score 65 in [50,80); missing C-29881-2 Failed 12 weeks conservative management. Missing criteria: Failed 12 weeks conservative management (weight 35). Auto-approval requires 80.",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 558,
+    "output_tokens" : 54,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "id": "U00",
+  "track": 1,
+  "title": "What Context Engineering Is — and the App That Shows It",
+  "subtitle": "The discipline of curating every token the model sees, met through an instrument that itemizes every call",
+  "icon": "🧭",
+  "color": "#4a6741",
+  "topics": [
+    "Context engineering: strategically curating the finite tokens available at inference — the attention budget",
+    "Context rot: performance degrades as the window grows, even far below the limit",
+    "The minimal high-signal principle: the smallest set of tokens that maximizes the outcome",
+    "MedFlow Copilot and the Token Lens: every AI call returns an itemized, layer-by-layer receipt",
+    "The correctness stamp: savings only count when the answer survives its answer key"
+  ],
+  "analogy": {
+    "title": "The Itemized Restaurant Bill",
+    "text": "Most teams run their AI like diners who never read the bill — they taste the answer, shrug at the total, and never learn that the wine service (a 4,700-token data dump) cost ten times the entrée (the 40 tokens of facts they actually needed). Context engineering starts the moment you demand an itemized bill: every line inspected, every charge asked to justify itself. MedFlow Copilot prints that bill for every single call — and it also checks whether the kitchen actually served what you ordered, because a cheap bill for the wrong dish is not a bargain."
+  },
+  "antiPatterns": [
+    "Judging a context setup by answer vibes alone — the answer looks fine while 99% of the spend is low-signal filler you never see, until the invoice or the latency graph forces the question",
+    "Celebrating a token reduction without a correctness check — the cheapest call in this course's grid is worthless on the one question where its answer failed the key",
+    "Assuming a bigger window fixes it — context rot means quality degrades as the window fills; more room to spend badly is not a strategy [ROT-LIT]"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Definition, and Why It Exists",
+      "body": "<p><strong>Context engineering</strong> is, in Anthropic's words, the practice of <em>strategically curating and managing the finite set of tokens available to an LLM during inference</em> (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>). Three ideas hide inside that sentence. First, the window is a <strong>finite attention budget</strong>: every token consumes processing capacity, and attention thins as the count grows. Second, <strong>context rot</strong> is real — accuracy degrades as the window fills, even when you are nowhere near the hard limit; the failure axis is signal-to-noise, not size [ROT-LIT]. Third, the goal is a search problem: find the <strong>smallest set of high-signal tokens</strong> that maximizes the likelihood of the outcome you want.</p><p>Prompt engineering asks <em>what words go in this message</em>. Context engineering asks <em>what gets included at all, in what order, fresh or cached, full or summarized</em>. The first is a writing problem. The second is a budgeting problem — and budgets need bills you can read.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Meet the Instrument: MedFlow Copilot and the Token Lens",
+      "body": "<p>This course refuses to teach budgeting in the abstract, so it ships an app. <strong>MedFlow Copilot</strong> is a prior-authorization portal: providers submit requests (like <strong>PA-1002</strong>, an MRI Lumbar Spine request for member M-2002), the system scores them against clinical criteria, and a reviewer works the manual-review queue with an AI copilot at their side.</p><p>The twist is the <strong>Token Lens</strong>. Every copilot call returns a <em>TokenReceipt</em>: input and output tokens, cost, cache behavior, latency — and the input itemized across <strong>five layers</strong>: system, retrieved, tool, history, and the user turn. The five lines always sum exactly to the input total; an instrument whose parts don't sum to its whole is lying, and this one is audited by tests. Next to the total sits the <strong>correctness stamp</strong>: the ten standing questions in this course carry deterministic answer keys derived from the seeded data, and every graded answer is stamped ✓ VERIFIED or ✗ FAILED. A saving that fails its key is stamped <em>savings void</em> — the single rule the whole course hangs on.</p><p>In the shipped replay mode (no API key needed) a naive ask of standing question Q1 bills <strong>1,694 input tokens</strong> for an answer whose necessary facts fit in roughly 40 — the course's motivating ratio, under 1% signal. Every module from here on attacks that bill from a different angle. (Replay numbers are deterministic, labeled <em>synthetic-pre-recording</em> in every receipt; a live recording pass replaces them with API-measured usage — the labels tell you which you are reading.)</p>"
+    },
+    {
+      "type": "quiz",
+      "question": "Your copilot's answers look correct, so a teammate says the context setup is fine. WHY does the Token Lens still matter?",
+      "options": [
+        "A. It doesn't — correct answers mean the context is optimal",
+        "B. Because cost, latency, and attention dilution are invisible in the answer text; a right answer can still be spending 99% of its budget on low-signal tokens that will eventually rot quality",
+        "C. Because token counts are needed for compliance reporting",
+        "D. Because the Lens makes answers more accurate by itself"
+      ],
+      "correct": 1,
+      "explanation": "The answer text hides the spend. Q1's naive call is correct AND wasteful — 1,694 tokens for ~40 tokens of facts. Rot means that waste eventually costs accuracy too, not just money. The Lens exists to make the invisible spend visible before it becomes a quality problem."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN is a 70% token reduction NOT a win in this course?",
+      "options": [
+        "A. When it required changing the model",
+        "B. When latency stayed the same",
+        "C. When the cheaper answer failed its answer key — a dropped key fact or a fabricated value voids the saving",
+        "D. When the cache hit rate fell"
+      ],
+      "correct": 2,
+      "explanation": "Savings only count when the answer is right. The grid you'll meet in U02 contains exactly this case: a mode that cuts tokens by ~88% on one question while dropping a load-bearing fact — stamped FAILED, savings void."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong When You Skip This",
+      "items": [
+        "The unread bill: a team ships a copilot, usage grows 40x, and the first itemization happens during the invoice postmortem — where they discover a static 2,000-token dump resent on every call",
+        "The vibes benchmark: 'it feels faster and cheaper' — with no receipt and no answer key, nobody can say whether quality was traded away",
+        "The trust-the-total fallacy: reading only the input total and never the layers, so nobody notices that 90% of it is one bloated layer a single lever would fix"
+      ]
+    }
+  ],
+  "takeaway": "Context engineering begins when you itemize the bill for every AI call — and refuse to call any saving a win until the answer survives its answer key.",
+  "labUnderstand": "Run MedFlow Copilot in replay mode, ask your first standing question, and audit the receipt by hand: verify the five layers sum to the total, find the dominant layer, and compute the course's motivating facts-to-input ratio (under 1%).",
+  "labBuild": "Have Claude write audit_receipts.py — a script that calls the copilot API across modes and questions, checks the layers-sum-to-total reconciliation rule on every receipt, and proves itself with a --tamper flag that must produce DRIFT on every line."
+}

@@ -1,0 +1,78 @@
+/* MedFlow Copilot — "clinical ledger" design tokens.
+   Layer palette validated with the dataviz six-checks script against BOTH
+   receipt surfaces (light #fbf8ef, dark #26261f): adjacent CVD ΔE >= 8.4,
+   normal-vision >= 19.3. Light-mode contrast WARN on aqua/yellow/magenta is
+   relieved by direct per-layer labels in the receipt itemization. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f7f7;
+  --surface: #ffffff;
+  --ink: #1c2b2d;
+  --ink-2: #5a6b6d;
+  --muted: #7d9090;
+  --line: #dde6e6;
+  --accent: #0e7c7b;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(14, 124, 123, 0.08);
+  --receipt: #fbf8ef;
+  --receipt-line: #e4dcc8;
+  --receipt-ink: #2c2a20;
+  --focus: #0e7c7b;
+
+  --layer-system: #2a78d6;
+  --layer-retrieved: #eb6834;
+  --layer-tool: #1baf7a;
+  --layer-history: #eda100;
+  --layer-user: #e87ba4;
+
+  --status-good: #0ca30c;
+  --status-good-text: #006300;
+  --status-warning: #fab219;
+  --status-warning-text: #7a5200;
+  --status-critical: #d03b3b;
+  --status-critical-text: #9c2626;
+
+  --shadow: 0 1px 2px rgba(28, 43, 45, 0.06), 0 4px 16px rgba(28, 43, 45, 0.07);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #10191a;
+  --surface: #182325;
+  --ink: #e6edec;
+  --ink-2: #9fb0af;
+  --muted: #6d8180;
+  --line: #253537;
+  --accent: #3ea8a5;
+  --accent-ink: #08211f;
+  --accent-wash: rgba(62, 168, 165, 0.12);
+  --receipt: #26261f;
+  --receipt-line: #3a3a30;
+  --receipt-ink: #e8e4d4;
+  --focus: #3ea8a5;
+
+  --layer-system: #3987e5;
+  --layer-retrieved: #d95926;
+  --layer-tool: #199e70;
+  --layer-history: #c98500;
+  --layer-user: #d55181;
+
+  --status-good: #0ca30c;
+  --status-good-text: #4fc44f;
+  --status-warning: #fab219;
+  --status-warning-text: #fab219;
+  --status-critical: #d03b3b;
+  --status-critical-text: #ef7c7c;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+:root {
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --rail-w: 200px;
+  --copilot-w: 400px;
+}

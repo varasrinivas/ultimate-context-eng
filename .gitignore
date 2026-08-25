@@ -1,0 +1,17 @@
+# build outputs
+app/api/target/
+app/ui/node_modules/
+app/ui/dist/
+*.class
+
+# env & secrets
+.env
+**/application-local.yml
+
+# python
+__pycache__/
+*.pyc
+
+# bench: results and fixtures ARE shipped (course numbers regenerate from them) — do not ignore
+# scratch
+*.log

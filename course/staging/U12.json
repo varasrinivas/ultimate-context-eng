@@ -1,0 +1,72 @@
+{
+  "id": "U12",
+  "track": 5,
+  "title": "Task-Context Alignment & The Router",
+  "subtitle": "No strategy wins everywhere — build the router that sends each question class to its cheapest CORRECT arm, from your own graded grid",
+  "icon": "🏆",
+  "color": "#2c3e50",
+  "topics": [
+    "Task-context alignment — matching technique to task shape, not to fashion",
+    "Reading your own grid — cheapest-correct per question class, not per average",
+    "The route-only-among-correct rule — a FAILED arm is ineligible at any price",
+    "The router's honest cost — classification overhead and the fallback path",
+    "Competency built: MEASURE + STRATEGIES (outcomes 6 and 2 of 6)"
+  ],
+  "analogy": {
+    "title": "The Hospital Triage Desk",
+    "text": "A hospital doesn't send every patient to the cheapest department, and it doesn't send everyone to the best-equipped one either — the triage nurse routes each case to the unit that can treat THAT case, and a unit currently failing its safety audit takes no patients at all, however short its queue. MedFlow's router is the triage desk for questions: threshold questions go to the tiny canonical-file unit, aggregations to the sub-agent ward, and any arm that failed its correctness audit on a question class is simply off the board for that class until it passes again."
+  },
+  "antiPatterns": [
+    "Routing to the cheapest arm by average — averages hide per-class failures; compressed averages 231 tokens AND fails Q9",
+    "Letting a FAILED arm stay routable because 'it usually passes' — the router's contract is correctness first, price second",
+    "A router with no fallback — when classification is unsure, degrade to the control arm, never to a guess"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Alignment Before Optimization",
+      "body": "<p>Anthropic's long-horizon guidance ends in an alignment table: compaction fits extended back-and-forth, note-taking fits milestone iteration, sub-agents fit parallel research (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\">canon: ANTHROPIC-CE</a>). The generalization is this module's thesis: <strong>every context strategy has a task shape it serves, and applying it elsewhere costs you</strong>. Your own grid proves it. <code>okf</code> is unbeatable on canonical questions (Q3: 186 tokens) but it's a policy reader — it can't summarize Rosa Delgado's history. <code>isolated</code> costs 1,805 median on single questions — the sub-agent's clean window is priced into the tool layer — yet it's the right unit for aggregation work. <code>compressed</code> is brilliant until the abstraction step drops PA-1004 on Q9. The knowledge-graph course measured the same law on codebases: forced-graph won structural questions and lost comprehension ones. No arm wins everywhere. <em>That is the finding, not the obstacle.</em></p>"
+    },
+    {
+      "type": "content",
+      "title": "The Router, Derived From Evidence",
+      "body": "<p>MedFlow's <code>routed</code> mode is a classifier plus a routing table — and the table is not designed, it is <strong>read off the graded grid</strong>: for each question class, the cheapest arm whose correctness on that class is 100%. From the shipped grid: structural/canonical → <code>okf</code> or <code>graph</code>; abstention → <code>okf</code> (a 157-token refusal); logic → <code>compressed</code> (passes Q5/Q6); aggregation → <code>isolated</code> (because <code>compressed</code> is disqualified there by its Q9 FAIL). Result: <strong>routed passes all 10 questions at a 239-token median vs naive's 1,696 — a 7.1x saving at 100% correctness</strong>, versus arms that saved more per call and forfeited it by failing (compressed at 231, savings void on Q9).</p><p>The rule that makes this defensible is the <strong>route-only-among-correct rule</strong>: a FAILED arm is ineligible for its failing class at ANY price. Q9's routed cell reads 1,796 tokens — expensive, because the honest table routes it to <code>isolated</code>. A router tuned on tokens alone would pick the 208-token FAIL and celebrate.</p>"
+    },
+    {
+      "type": "content",
+      "title": "What the Router Costs, Honestly",
+      "body": "<p>Per the Honesty Rule, the router's own price tag: <strong>classification overhead</strong> (MedFlow's is a keyword classifier — near-free but fallible; an LLM classifier adds a call to every question), <strong>misclassification risk</strong> (a logic question routed to <code>okf</code> gets a threshold recital instead of reasoning — the fallback for low-confidence classification is the control arm, accepting naive's 1,696 tokens over a wrong-unit answer), and <strong>a second derived artifact</strong>: the routing table is derived from the grid, so U11's law applies — reroute after every re-measurement, or the router itself rots. These numbers are replay-mode (<code>synthetic-pre-recording</code>); the routing METHOD — cheapest-correct per class, re-derived from your own live grid — is the transferable asset, not the table.</p>"
+    },
+    {
+      "type": "code",
+      "title": "The Routing Table Is Data, Not Code",
+      "language": "python",
+      "code": "# Derive the routing table from the graded grid - never hand-author it.\nimport json, collections\n\nrows = json.load(open('bench/results/replay-fullgrid.json'))\nby_class = collections.defaultdict(list)\nfor r in rows:\n    by_class[(r['class'], r['mode'])].append(r)\n\ntable = {}\nfor (qclass, mode), cells in sorted(by_class.items()):\n    if any(c['verdict'] == 'FAIL' for c in cells):\n        continue                      # route-only-among-correct: ineligible\n    cost = sum(c['tokens_in'] for c in cells) / len(cells)\n    if qclass not in table or cost < table[qclass][1]:\n        table[qclass] = (mode, cost)\n\nfor qclass, (mode, cost) in sorted(table.items()):\n    print(f'{qclass:<12} -> {mode:<10} (~{cost:,.0f} tok, 100% correct)')\n# abstention -> okf, aggregation -> notes/isolated, canonical -> okf, ..."
+    },
+    {
+      "type": "quiz",
+      "question": "Your compressed arm posts the best token number on aggregation questions (208 vs isolated's 1,796) but failed Q9 by dropping PA-1004. A stakeholder asks WHY the router 'wastes' 1,588 tokens per aggregation question. What is the correct defense?",
+      "options": [
+        "A. The router is misconfigured; cheapest arm should win and Q9 was one bad run",
+        "B. Compressed's 208 tokens bought an answer missing a manual-review case — in a prior-auth system that's a clinician never seeing a pending request; the 1,588 tokens are the measured price of the complete answer, and an arm that failed the class is ineligible until it passes, at any price",
+        "C. Isolated should be replaced by naive, which also passes and reads more naturally",
+        "D. The grader is too strict; PA-1004 was only one fact among several correct ones"
+      ],
+      "correct": 1,
+      "explanation": "Savings void: 208 tokens for a wrong answer isn't a saving, it's a discount on a defect. The route-only-among-correct rule prices completeness explicitly — and if compressed's fidelity assertion is later fixed and re-measured to 100% on aggregations, the table re-derivation admits it back automatically. (C fails on price: naive passes Q9 at 1,700, no better than isolated and worse elsewhere; D misreads grading — a dropped load-bearing fact is the failure class the grader exists for.)"
+    },
+    {
+      "type": "antipattern",
+      "title": "Routers That Rot or Lie",
+      "items": [
+        "The average-cost router: picks arms by grid-wide medians and quietly serves compressed's Q9 failure — per-class verdicts are the routing unit, never averages.",
+        "The frozen table: grid re-measured after a seed or model change, routing table not re-derived — the router now optimizes for a world that no longer exists (U11's law, applied to itself).",
+        "The guessing fallback: classifier unsure, router picks its favorite arm anyway — the only safe fallback is the control arm you've already graded everywhere."
+      ]
+    }
+  ],
+  "takeaway": "No context strategy wins every task, so stop looking for one: derive a routing table from your own graded grid — cheapest arm per question class among those at 100% correctness — and re-derive it whenever the grid changes, because a router is itself a derived fact.",
+  "labUnderstand": "Ask one question from each class in routed mode and read which arm the receipt says served it (routed:okf, routed:isolated…), then verify each choice against the grid: cheapest-correct per class, including the Q9 case where the cheap arm was disqualified.",
+  "labBuild": "With Claude, build derive_routes.py from the code section, run it on replay-fullgrid.json, and prove the rule twice: it must route aggregation AWAY from compressed (FAIL) — then flip Q9-compressed's fixture to a correct answer, re-grade, re-derive, and watch compressed become eligible again."
+}

@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q7",
+  "mode" : "isolated",
+  "answer" : "Insufficient evidence: member M-2003's date of birth is redacted (PHI-minimized field). I cannot state or infer it.",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 113,
+    "output_tokens" : 28,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q9",
+  "mode" : "okf",
+  "answer" : "Member M-2001 has 2 authorization requests: PA-1001 APPROVED (score 100); PA-1004 MANUAL_REVIEW (score 65).",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 190,
+    "output_tokens" : 26,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "id": "U01",
+  "track": 1,
+  "title": "Layers, Levers, and the Map of Taxonomies",
+  "subtitle": "The five layers every receipt itemizes, and the four strategy families that shrink them",
+  "icon": "🗺️",
+  "color": "#4a6741",
+  "topics": [
+    "The five context layers: system, retrieved, tool, history, user — the receipt's unit of account",
+    "The four canonical strategies: write, select, compress, isolate [LC-WSCI]",
+    "Which layer each of the app's ten modes attacks, read straight off the receipts",
+    "The taxonomy map: translating add/compress/retrieve/offload and crop/compress/summarize/select into the canonical frame",
+    "Two levers that don't fit the families: caching (position economics) and routing (choosing levers)"
+  ],
+  "analogy": {
+    "title": "Four Ways to Lighten a Suitcase",
+    "text": "Every overweight suitcase has the same four remedies. You can ship things ahead to the hotel so they never ride in the bag (write — external memory). You can pack only what this trip needs instead of your whole wardrobe (select). You can vacuum-bag what you do pack (compress). Or you can hand half the load to a travel companion with their own bag who meets you there (isolate). Buying airline status so bags fly cheaper changes none of the packing — that's caching, an economics move. And the seasoned traveler's real skill is knowing which remedy fits which trip — that's routing."
+  },
+  "antiPatterns": [
+    "Strategy-as-incantation: turning on 'compression' everywhere because a blog said 70% savings — without knowing which layer it attacks, you compress the one layer that was already small",
+    "Taxonomy fights: teams argue whether something is 'retrieval' or 'offloading' instead of asking which layer shrinks and what the receipt says — the map exists so the words stop mattering",
+    "Ignoring the two misfits: treating caching as a token reduction (it isn't — same tokens, cheaper reads) or treating routing as a fifth lever (it chooses levers; it is only as good as the graded evidence behind it)"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Five Layers: the Receipt's Unit of Account",
+      "body": "<p>Every TokenReceipt in MedFlow itemizes input across five layers. <strong>System</strong>: the standing instructions and persona — identical on every call unless you change the design. <strong>Retrieved</strong>: whatever the assembler pulled from the domain — in naive mode, essentially the whole seeded database as JSON. <strong>Tool</strong>: results of lookups the model (or a sub-agent) performed mid-call. <strong>History</strong>: the conversation so far. <strong>User</strong>: the question itself — routinely the smallest line on the bill.</p><p>Read one real bill. Naive mode on <strong>Q9</strong> (\"summarize member M-2001's history\") bills 1,700 input tokens; the retrieved layer dominates because naive ships every member, every request, every criterion — including all three procedures' criteria tables that have nothing to do with Rosa Delgado. The question needed two requests: PA-1001 (APPROVED) and PA-1004 (MANUAL_REVIEW). Everything else was paid-for noise. Diagnosis always starts here: <em>which layer dominates, and did the answer need it?</em></p>"
+    },
+    {
+      "type": "content",
+      "title": "Four Families, Ten Modes",
+      "body": "<p>LangChain's canonical frame names four strategy families (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>): <strong>Write</strong> — persist context outside the window and read back only what's needed (the app's <em>notes</em> mode: structured notes replace raw history; Q9 for 167 tokens). <strong>Select</strong> — pull in only what helps (the <em>jit</em>, <em>graph</em>, and <em>okf</em> modes: identifiers-then-lookup, a provenance-tagged subgraph, or one canonical concept file; Q3 via okf costs 186 tokens against naive's 1,696 — a 9.1x cut on the same graded answer). <strong>Compress</strong> — retain only required tokens (<em>budgeted</em> caps and evicts whole records; <em>compressed</em> runs prune → extract-verbatim → abstract with a fidelity assertion). <strong>Isolate</strong> — give the messy work a clean window (<em>isolated</em>: a sub-call gathers, the main call gets its ≤1.5K summary).</p><p>Two toggles refuse the families. <strong>Cached</strong> reorders context static-first and marks the prefix cacheable — the same 731 tokens, but most become cheap cache reads on repeat calls: position economics, not reduction. <strong>Routed</strong> picks one of the others per question class — a meta-lever whose entire authority comes from graded measurements (U12's subject).</p><p>One honest wrinkle from the grid: <em>isolated</em> bills MORE than naive on single questions (1,805 median vs 1,696) because the sub-call's own tokens land in the tool layer, visibly. Isolation buys clean attention and pays in total tokens; it wins on long sessions and parallel research, not one-shot asks [ANTHROPIC-CE]. The receipt refuses to hide that trade — that's the point of receipts. (All numbers: replay grid, synthetic-pre-recording labels.)</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Map of Taxonomies",
+      "body": "<p>You will meet other vocabularies in the wild, including in this course's own parents. The agent-course M03B teaches <em>add / compress / retrieve / offload</em>; the kit's open-source track uses <em>crop / compress / summarize / select</em>. The map: <strong>retrieve ≈ select</strong>; <strong>offload splits</strong> — offloading to files/memory is <em>write</em>, offloading to sub-agents is <em>isolate</em>; <strong>add</strong> is the decision the other levers discipline (what deserves inclusion at all); <strong>crop and summarize are both compress</strong> (drop vs distill). When vocabularies clash, stop arguing names and point at the receipt: <em>which layer shrank, and did the stamp stay green?</em> The layer-and-verdict view is the taxonomy-independent truth. Both parent courses go deeper: the kit for each lever's craft (<a href=\"../../context-eng-kit/course/index.html\" target=\"_blank\" rel=\"noopener\">context-eng-kit</a>), the graph course for select-by-structure (<a href=\"../../knowledge-graph/output/index.html\" target=\"_blank\" rel=\"noopener\">knowledge-graph</a>).</p>"
+    },
+    {
+      "type": "quiz",
+      "question": "Q9's naive receipt shows retrieved at ~1,400 of 1,700 tokens. A teammate proposes 'better summarization of the conversation history.' WHY is that the wrong first move?",
+      "options": [
+        "A. Summarization is always lossy, so it should never be used",
+        "B. History isn't the dominant layer — compressing a small layer can't fix a bill dominated by retrieved; the first move is a select-family lever aimed at what's actually big",
+        "C. The history layer can't be compressed in this app",
+        "D. Because caching would be free"
+      ],
+      "correct": 1,
+      "explanation": "Diagnosis before strategy: the receipt says retrieved dominates, so select (jit/graph/okf) attacks the actual problem. Aiming compress at the wrong layer is the strategy-as-incantation anti-pattern."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN does the isolated mode's higher single-call bill (1,805 vs naive's 1,696) become a good trade?",
+      "options": [
+        "A. Never — it's strictly worse",
+        "B. When the question is tiny",
+        "C. On long or parallel workloads, where sub-agents keep the main window clean and hand back condensed summaries — the per-call premium buys attention that compounds across a session",
+        "D. Whenever caching is also enabled"
+      ],
+      "correct": 2,
+      "explanation": "Task-context alignment [ANTHROPIC-CE]: isolation's price is visible per-call in the tool layer, and its payoff is session-scale focus. One-shot questions pay the premium without collecting the benefit."
+    },
+    {
+      "type": "quiz",
+      "question": "Your team's compressed mode cut Q9 to 208 tokens — an 88% saving — and the stamp reads ✗ FAILED (PA-1004 missing). What is the correct report to leadership?",
+      "options": [
+        "A. '88% token reduction achieved on aggregation queries'",
+        "B. 'Compression works but grading is too strict'",
+        "C. 'No saving on Q9: the compressed arm dropped a load-bearing fact, so its number is void; budgeted (565, PASS) is the current honest best for that class'",
+        "D. 'We should average the PASS and FAIL runs'"
+      ],
+      "correct": 2,
+      "explanation": "Savings void is not a slogan, it's the reporting rule. The honest comparison is among correct arms only — and the fix (a fidelity assertion that refuses to drop identifiers) is U07's subject."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Lever monoculture: one strategy applied to all ten question classes — the grid shows no mode wins everywhere (okf wins canonical at 186, notes wins aggregation at 167, isolated loses every single-shot)",
+        "Vocabulary lock-in: a team standardizes on one taxonomy and then can't absorb techniques described in another — the map costs one slide and ends the problem",
+        "Compressing the user layer: shaving the 19-token question while a 1,400-token retrieved dump rides along untouched"
+      ]
+    }
+  ],
+  "takeaway": "Diagnose by layer, act by family: name the dominant line on the receipt, pick the strategy family that attacks it, and let the stamp — not the taxonomy — decide if it worked.",
+  "labUnderstand": "Ask the same standing question (Q9) in all ten modes, classify every mode into write/select/compress/isolate from its receipt shape, and watch the Compare drawer void an 88% saving when compressed drops PA-1004.",
+  "labBuild": "Have Claude write layer_profile.py — a script that asks one question across all ten modes, prints a layer-by-mode matrix, and names the dominant layer and the family that should attack it for each mode."
+}

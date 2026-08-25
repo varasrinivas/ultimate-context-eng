@@ -1,0 +1,72 @@
+{
+  "id": "U13",
+  "track": 5,
+  "title": "Evaluate Like a Professional",
+  "subtitle": "From A/B to K arms, the Three Quantities, the canary rule, and two instruments that must agree — how experts decide what a number means",
+  "icon": "🏆",
+  "color": "#2c3e50",
+  "topics": [
+    "From A/B to K arms — multi-arm grids, and why the significance bar rises with K",
+    "The Three Quantities — mechanical floor, others' sessions, your stack live",
+    "The canary rule — one arm with no fallback, so silent infrastructure failure becomes loud",
+    "Instrument reconciliation — the Token Lens and the harness must agree to the token",
+    "Competency built: MEASURE (outcome 6 of 6)"
+  ],
+  "analogy": {
+    "title": "The Two-Scale Pharmacy",
+    "text": "A compounding pharmacy weighs every dose twice, on two different scales — not because one scale is bad, but because a drifting scale looks exactly like a working one, and the only cheap way to catch it is disagreement. They also keep a reference weight (a known 10.000g slug) on the counter: if a scale reads it wrong, every measurement since its last good reading is suspect. This module gives your evaluation practice both habits: the Token Lens and the campaign harness are the two scales, and the forced-style canary arm is the reference weight that fails loudly when the infrastructure under your numbers quietly breaks."
+  },
+  "antiPatterns": [
+    "One instrument, trusted — a single measurement path that drifts has no way to announce itself",
+    "K arms, A/B statistics — comparing ten strategies with a two-arm significance bar ships noise as insight",
+    "Quoting a number without its quantity class — a mechanical floor presented as a live expectation is how 71.5x becomes a lie"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "From A/B to K Arms",
+      "body": "<p>The kit's M29 taught the clinical-trial method for TWO strategies. Your grid has TEN — and multiplicity changes the rules. With 10 arms and 10 questions there are dozens of pairwise comparisons; at conventional thresholds, some will 'win' by luck alone. The professional adjustments: pre-register the primary comparison (in this course: <code>routed</code> vs <code>naive</code> — everything else is exploratory), raise the significance bar as K grows (the kit's own stretch goal names Bonferroni), and in live mode run repetitions per cell and report <strong>medians with spread</strong>, never single runs — the knowledge-graph course measured 2x variance between identical fresh sessions, meaning any single-run comparison is a coin flip. Replay mode is deterministic (repetition-free by design); the moment you record live, the median-of-3 discipline becomes mandatory.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Three Quantities and the 71.5x Anatomy",
+      "body": "<p>Every context-engineering number you will ever read belongs to one of <strong>three quantities</strong>: the <em>mechanical floor</em> (worst-case arithmetic, no model in the loop), <em>other people's sessions</em> (real, but their stack, their questions), and <em>your stack live</em>. All three are correct answers to different questions — and marketing thrives on presenting the first as the third. The canonical cautionary tale: a famous '71.5x token reduction' came from one favorable corpus and one favorable query; independent replications landed at 6.8–49x, and the <a href=\"../../knowledge-graph/output/CAPSTONE-2-java-token-benchmark.html\">knowledge-graph course's own live campaign</a> measured the same tool class LOSING on one stack and winning on another. Your MedFlow grid is quantity three for THIS bench only — which is why every cell carries its <code>source</code> label (<code>synthetic-pre-recording</code> until you record live), and why this course refuses to print a number without its conditions.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Canary and the Two Instruments",
+      "body": "<p>The knowledge-graph course's most expensive lesson: two full campaigns measured a 'graph arm' whose MCP server had been silently crashing — file-tool fallbacks made the failure invisible, and the numbers were confidently wrong. The fix became a rule: <strong>always run one arm with no fallback</strong>. If the infrastructure is broken, the canary arm fails loudly instead of producing plausible garbage. In MedFlow, <code>okf</code> serves this role: it answers ONLY from canonical concepts, so a broken concept store yields visible failures, not quiet degradation to naive behavior.</p><p>The second rule is <strong>reconciliation</strong>: the Token Lens (the app's per-call receipt) and <code>run_campaign.py</code> (the external harness) measure the same calls independently — layer sums must equal input totals, and the backend's correctness verdict must match the harness grader on every cell (the runner prints a mismatch warning; the shipped grid has zero). Two instruments, one truth: when they disagree, you stop trusting BOTH until you know why — that's not paranoia, it's the pharmacy's second scale.</p>"
+    },
+    {
+      "type": "code",
+      "title": "Reconciliation Is a Loop, Not a Vibe",
+      "language": "python",
+      "code": "# The U13 reconciler: every campaign row must agree with the app's own receipt.\nimport json\n\nrows = json.load(open('bench/results/replay-fullgrid.json'))\nmismatches = []\nfor r in rows:\n    # instrument 1: the harness graded the answer itself (r['verdict'])\n    # instrument 2: the backend graded it server-side (r['backend_verdict'])\n    if r.get('backend_verdict') and r['backend_verdict'] != r['verdict']:\n        mismatches.append((r['qid'], r['mode'], r['verdict'], r['backend_verdict']))\n    # and the receipt's layers must sum to its total (checked in your U00 auditor)\n\nprint(f\"{len(rows)} cells; {len(mismatches)} instrument disagreements\")\nfor m in mismatches:\n    print('DISAGREE:', m)   # shipped grid: zero - and the day it isn't,\n                            # neither instrument is trusted until explained"
+    },
+    {
+      "type": "quiz",
+      "question": "A vendor's benchmark shows their context tool achieving 40x token reduction. Your replay grid shows okf at 9.1x over naive, and a colleague concludes 'their tool is 4x better than our approach.' WHEN is that conclusion valid?",
+      "options": [
+        "A. Immediately — 40 is bigger than 9.1",
+        "B. Only after establishing all three numbers are the same quantity measured comparably: the vendor's conditions (corpus, question mix, baseline strength, single-run or medians) reproduced on YOUR bench with graded correctness — because a 40x against a weak baseline on a favorable corpus and a 9.1x against line-item grading are not on the same axis",
+        "C. Never — vendor benchmarks are always fabricated",
+        "D. After converting both to cost savings in dollars, which normalizes the comparison"
+      ],
+      "correct": 1,
+      "explanation": "The comparison crosses quantity classes: the vendor number is (at best) their-stack-live with unknown baselines and no correctness gate; yours is replay-mode with graded answers. 40x vs 9.1x compares apples to invoices. The professional move is the one this course keeps making: reproduce their conditions on your bench, grade the answers, report medians with the source label — then compare. (C is cynicism, not rigor; D changes units without fixing conditions.)"
+    },
+    {
+      "type": "antipattern",
+      "title": "Evaluation Malpractice",
+      "items": [
+        "The missing canary: every arm has a fallback, so infrastructure failure degrades silently into 'the tool doesn't help much' — two campaigns' worth of wrong conclusions, as the knowledge-graph course can attest.",
+        "Single-instrument trust: the dashboard is the only measurement path; when it drifts, its numbers stay green because it grades its own homework.",
+        "Cross-quantity headlines: a mechanical-floor multiple quoted next to a live-session multiple in the same table, no labels — readers average them into a number that describes nothing."
+      ]
+    }
+  ],
+  "takeaway": "Professional evaluation is three disciplines stacked: know which of the Three Quantities your number is, measure it on two instruments that must reconcile, and keep one fallback-free canary arm running — because the numbers most likely to mislead you are the ones produced by infrastructure that fails politely.",
+  "labUnderstand": "Take the shipped grid and classify six published claims (from the canon posts and both parent courses' benchmarks) into the Three Quantities, then find the one pair in the grid that a naive reader would compare directly and explain why the comparison is invalid.",
+  "labBuild": "With Claude, build reconcile.py: re-run your U00 receipt auditor across all 100 replay cells, join against replay-fullgrid.json, and assert zero layer-sum drift and zero verdict disagreements — then tamper one fixture's answer and prove the reconciler catches the instruments disagreeing."
+}

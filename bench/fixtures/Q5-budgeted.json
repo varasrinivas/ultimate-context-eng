@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q5",
+  "mode" : "budgeted",
+  "answer" : "PA-1003 scored 25 and was DENIED: score 25 < 50; missing C-72148-1 Conservative therapy >= 6 weeks documented, C-72148-2 Neurological deficit present. Missing criteria: Conservative therapy >= 6 weeks documented (weight 40) and Neurological deficit present (weight 35).",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 569,
+    "output_tokens" : 67,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

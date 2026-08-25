@@ -1,0 +1,85 @@
+{
+  "id": "U04",
+  "track": 2,
+  "title": "Select I: Retrieval Done Right",
+  "subtitle": "Pulling in only what helps — retrieve wide, rerank narrow, and know when retrieval itself is the mistake",
+  "icon": "🔎",
+  "color": "#2e6b8a",
+  "topics": [
+    "The select family: the context window is for the shortlist, not the archive [LC-WSCI]",
+    "Retrieve wide → rerank narrow: candidates are cheap, context slots are expensive",
+    "Budgeted and jit as select's two postures: cap what ships vs fetch on demand",
+    "When retrieval hurts: canonical facts don't need discovering, they need looking up",
+    "Formatting and placement: a retrieved record's cost depends on how it's serialized"
+  ],
+  "analogy": {
+    "title": "The Reference Librarian",
+    "text": "A bad librarian answers your question by wheeling the whole card catalog to your desk. A mediocre one brings every book whose title matches a keyword — forty volumes, mostly noise. The good librarian searches wide in the stacks, then applies judgment and hands you three books opened to the right chapters. The stacks are for searching; the desk is for the shortlist. Your context window is the desk — and half of context engineering is refusing to let the stacks onto it."
+  },
+  "antiPatterns": [
+    "Desk-dumping: top_k set high 'to be safe' — recall theater that buries the right record under nineteen plausible ones and pays rot on all twenty",
+    "Retrieving the settled: running similarity search to rediscover the approval threshold on every call, when a canonical file could state it once (U05's subject)",
+    "Serialization tax: shipping retrieved records as raw pretty-printed JSON — field names and punctuation can outweigh the facts two-to-one"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Select's First Discipline: Wide Then Narrow",
+      "body": "<p><strong>Select</strong> means pulling into the window only what helps the task (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>). The craft has a canonical shape: <em>retrieve wide, rerank narrow</em>. Casting a wide candidate net is nearly free — candidates live outside the window. Every context slot, by contrast, is expensive attention. A pipeline that gathers fifty candidates and ships the best three beats one that ships all fifty, on cost AND on quality — the forty-seven extras aren't neutral padding, they're rot [ROT-LIT].</p><p>MedFlow demonstrates select in two postures. <strong>Budgeted</strong> is select-by-cap: per-layer budgets with whole-record eviction — never truncate mid-record — landing every question near 560 tokens at 100% correctness (replay grid, synthetic-pre-recording). <strong>Jit</strong> is select-by-demand, Anthropic's just-in-time pattern: ship lightweight identifiers, let the model request the records it actually needs, inject only those (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>). On Q1 — three criteria for procedure 72148 — jit bills <strong>143 tokens</strong> against naive's 1,694: the model asked for one procedure record instead of receiving the database. The receipt shows jit's signature: retrieved shrinks to nearly nothing while a small tool layer appears — select moved the cost from bulk shipping to targeted lookup.</p>"
+    },
+    {
+      "type": "content",
+      "title": "When Retrieval Is the Wrong Tool",
+      "body": "<p>Retrieval's failure mode isn't bad ranking — it's being used on the wrong knowledge class. Watch Q3 (\"what are the score thresholds?\") across the grid: jit bills 285, graph 840, while <strong>okf bills 186</strong> — because thresholds aren't something to <em>discover</em>, they're something the organization <em>settled</em>: 80 and 50 live in the policy, and the right move is reading the canonical statement, not searching for passages that resemble it. The parent graph course tells the production version of this story — a stale similarity hit shipping a wrong metric definition for weeks (<a href=\"../../knowledge-graph/output/M02-rag-baseline-limits.html\" target=\"_blank\" rel=\"noopener\">KG M02</a>). Rule of thumb: <em>fuzzy questions get retrieval; settled facts get lookup</em>. U05 builds the lookup side.</p><p>Last, the quiet tax: <em>how</em> a selected record ships matters. A pretty-printed JSON member record spends more tokens on braces and field names than on facts; a compact line like <code>PA-1002 | M-2002 | 72148 | 65 | MANUAL_REVIEW</code> carries the same load-bearing content at a fraction of the cost. Selection chooses what enters; formatting decides what it costs. The kit's retrieval track (M08–M09) drills ranking craft — hybrid search, RRF, cross-encoder reranking — beyond what this module needs (<a href=\"../../context-eng-kit/course/index.html\" target=\"_blank\" rel=\"noopener\">context-eng-kit</a>).</p>"
+    },
+    {
+      "type": "quiz",
+      "question": "Your retrieval pipeline's recall improved after raising top_k from 5 to 25, but graded answer quality FELL. WHY?",
+      "options": [
+        "A. The embedding model is broken",
+        "B. Recall measured the candidate set, but the window received all 25 — twenty extra plausible records diluted attention on the right one; the fix is rerank-then-ship-few, not retrieve-fewer",
+        "C. Quality metrics are unreliable",
+        "D. top_k has no effect on quality"
+      ],
+      "correct": 1,
+      "explanation": "Wide is for the search stage, narrow is for the window. Recall went up in the stacks while the desk drowned — the two stages have opposite optima."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN is jit mode the wrong select posture, even though it posted Q1's second-cheapest bill?",
+      "options": [
+        "A. When latency budgets are tight and the workload is predictable — jit's second round-trip pays off only when you can't know in advance what's needed; a known-shape workload should pre-select (budgeted) instead",
+        "B. Never — on-demand is strictly better",
+        "C. When records are small",
+        "D. When the model is large"
+      ],
+      "correct": 0,
+      "explanation": "Anthropic frames this as the pre-compute/explore hybrid trade [ANTHROPIC-CE]: just-in-time buys precision at the cost of a lookup round-trip. Predictable workloads pay that latency for nothing."
+    },
+    {
+      "type": "quiz",
+      "question": "A teammate proposes embedding-search over the policy document to answer threshold questions 'more robustly.' What does the grid say?",
+      "options": [
+        "A. Good idea — embeddings generalize better",
+        "B. The thresholds are settled canonical facts: okf's direct read (186 tokens, PASS) beats every retrieval posture on Q3, and similarity search adds a failure mode (retrieving something threshold-shaped but stale) for zero benefit",
+        "C. It depends on the embedding dimension",
+        "D. Retrieval and lookup are equivalent for small documents"
+      ],
+      "correct": 1,
+      "explanation": "Fuzzy questions get retrieval; settled facts get lookup. Using similarity where exactness is available trades determinism away for nothing — U05 and U10 build on exactly this line."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Recall theater: reporting retrieval quality by candidate-set metrics while shipping the whole candidate set — the window pays for the difference",
+        "One retriever for all classes: the grid's per-class view exists because canonical, structural, and fuzzy questions want different select machinery",
+        "Mid-record truncation to hit a budget: half a request record is worse than none — budgeted mode evicts whole records for a reason"
+      ]
+    }
+  ],
+  "takeaway": "Search wide, ship narrow, format tight — and before reaching for retrieval at all, ask whether the fact is fuzzy enough to deserve it or settled enough to just look up.",
+  "labUnderstand": "Compare naive, budgeted, and jit receipts on Q1 and Q5: watch retrieved collapse and the tool layer appear under jit, then find the question class where jit's advantage inverts and explain it from the receipt shape.",
+  "labBuild": "Have Claude write select_shootout.py — ask every structural and canonical question in budgeted, jit, and okf modes, print the per-class cheapest-correct posture, and assert no mode shipped a mid-record truncation (whole-record rule check against the receipts)."
+}

@@ -1,0 +1,71 @@
+{
+  "id": "U14",
+  "track": 5,
+  "title": "Capstone — The Mastery Scorecard",
+  "subtitle": "Fresh clone to defended scorecard: run the whole discipline end-to-end and prove, with graded numbers, that you now excel at context engineering",
+  "icon": "🏆",
+  "color": "#2c3e50",
+  "topics": [
+    "The end-to-end run — seed → gates → app → full graded campaign → scorecard",
+    "The headline metric — tokens ↓ at 100% key-fact correctness (never tokens alone)",
+    "Seam failures — where stages meet is where systems actually break",
+    "The six-competency self-checklist — 'you now excel when…'",
+    "Competency built: ALL SIX — this module is the exam"
+  ],
+  "analogy": {
+    "title": "Opening Night at the Restaurant You Built",
+    "text": "Culinary school ends the same way every discipline does: not with a quiz about knives, but with a service — you plan the menu, stock the walk-in, run the line, and serve real covers while the instructors watch the pass. Nobody asks whether you can julienne; they watch whether the fish course arrives correct, on time, and costed. U14 is your service: a fresh clone of MedFlow, every gate run in order, a full graded campaign, and a one-page scorecard you can defend line by line — where every line says both what it cost AND whether it was right."
+  },
+  "antiPatterns": [
+    "The scorecard with one column — tokens without verdicts is a menu without allergen labels",
+    "Skipping the gates because 'nothing changed' — the capstone grade is for the protocol, not the luck",
+    "Explaining a seam failure away instead of writing it down — the seams section is the most reread part of any postmortem"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Run",
+      "body": "<p>The capstone is a protocol, executed on a fresh clone, in order — each step gated by the one before it:</p><p><strong>1. Contract:</strong> <code>python bench/keys/generate_keys.py</code> — the seed must verify (10 determinations) before anything downstream is trusted. <strong>2. Grader:</strong> <code>python bench/verify_selftest.py</code> — prove the instrument can fail (it must catch the planted wrong answer AND the planted fabrication). <strong>3. App:</strong> backend tests green (<code>./mvnw test</code> — golden determinations, per-mode reconciliation, abstention, fidelity), then boot both halves in replay mode. <strong>4. Campaign:</strong> <code>python bench/run_campaign.py --modes</code> all ten <code>--replay</code> — 100 graded cells. <strong>5. Reconcile:</strong> your U13 reconciler — zero layer drift, zero instrument disagreements. <strong>6. Route:</strong> your U12 derivation — the table must re-derive from THIS run's grid, not the shipped one. Only then do you write the scorecard.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Scorecard",
+      "body": "<p>One page, five defended lines, every number from YOUR run's <code>results/</code> (the shipped reference: routed <strong>239 median tokens vs naive 1,696 — 7.1x at 100% correctness</strong>; okf 9.1x on canonical; abstention correct on both traps at 157 tokens; two disclosed teaching failures, naive×Q7 and compressed×Q9, both caught):</p><p><strong>Line 1 — Tokens:</strong> routed vs naive median, with the source label (<code>synthetic-pre-recording</code> or live). <strong>Line 2 — Correctness:</strong> per-arm percentages, FAILs named, savings-void cells listed. <strong>Line 3 — Truth:</strong> abstention verdicts on Q7/Q8 and the fidelity assertion's status. <strong>Line 4 — Freshness:</strong> gate outputs with timestamps — when did the contract last verify. <strong>Line 5 — Provenance:</strong> which quantity (U13) every headline number is, stated plainly. A scorecard whose every line survives the question <em>'how do you know?'</em> is the course outcome made visible.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Seam Failures — Where It Actually Breaks",
+      "body": "<p>The kit's M31 closed on the observation that production failures live at the SEAMS between stages, not within them — and this course's own build history is the evidence. The response-shape seam: harness expecting flat JSON, backend wrapping in <code>primary</code> — 100 cells of zeros, caught only because 0-token PASSes are impossible. The instrument seam: a benchmark's graph arm running against a silently-crashed server for two whole campaigns. The derivation seam: UI mirrors hand-copied from the seed, one edit away from U11's silent rot. Your capstone writeup must include a <strong>seams section</strong>: at least two places where YOUR run's stages meet and could fail without an error — and what mechanical check now guards each. Finding none doesn't mean there are none; it means your run hasn't failed yet.</p>"
+    },
+    {
+      "type": "content",
+      "title": "You Now Excel When…",
+      "body": "<p>The six-competency rubric, self-graded with evidence from your run:</p><p><strong>① Diagnose:</strong> given any receipt, you can name the dominant layer and the strategy family that attacks it. <strong>② Four strategies:</strong> you can classify all ten modes into write/select/compress/isolate — and explain the two that resist the taxonomy. <strong>③ Static surface:</strong> you can state why cached mode's CLEAN prefix hits and what edit would silently zero it. <strong>④ Long horizons:</strong> you can say which of compaction/notes/isolation fits a given task shape, and what isolated's 1,805-token single-question price buys. <strong>⑤ Govern truth:</strong> you can show a fabrication being caught by shape, and staleness being caught by a gate, within a day. <strong>⑥ Measure:</strong> you can put any published number in its quantity class and say what would make it comparable to yours. Six boxes, each with a pointer into your own results — that is what 'excelling at context engineering' means here, and nothing less counts.</p>"
+    },
+    {
+      "type": "quiz",
+      "question": "Your capstone run reports routed at 8.9x over naive — better than the shipped 7.1x reference — and a reviewer asks you to defend the improvement. WHICH defense demonstrates course mastery?",
+      "options": [
+        "A. 'Higher is better; the course reference was conservative'",
+        "B. 'Both are replay-quantity numbers; my delta traces to re-derived routes after I fixed compressed's Q9 fidelity — here is the re-graded grid showing compressed now eligible for aggregations at 100%, the reconciler's zero-disagreement output, and the freshness gate run after my change'",
+        "C. 'The number came from run_campaign.py, which the course itself ships, so it is correct by construction'",
+        "D. 'I averaged three replay runs to reduce variance'"
+      ],
+      "correct": 1,
+      "explanation": "B walks all six competencies in one answer: quantity class named (U13), the causal change attributed (U11's drift attribution), correctness re-verified per class (U12's route-only-among-correct), instruments reconciled, gates rerun. A celebrates without provenance; C confuses the instrument with the verdict (tools are trusted because they can fail, not because they shipped); D reveals a misunderstanding — replay is deterministic, so averaging it is theater, which a master would know."
+    },
+    {
+      "type": "antipattern",
+      "title": "Capstone Theater",
+      "items": [
+        "The reference-number capstone: quoting the shipped grid instead of running your own — the protocol IS the exam; the numbers are just its receipt.",
+        "Green-path-only writeups: no seams section, no FAILs mentioned — a report that can't name where it would break is a demo, and this course has spent fourteen modules on the difference.",
+        "Rubric self-grading without pointers: six checked boxes and zero file paths — evidence-free mastery is the anecdote trap wearing a graduation gown."
+      ]
+    }
+  ],
+  "takeaway": "Mastery is a protocol you can rerun and a scorecard you can defend: gates before trust, correctness gating every token number, seams named before they fail, and each of the six competencies backed by a pointer into results you produced yourself.",
+  "labUnderstand": "Dry-run the protocol against the shipped artifacts: execute steps 1–2 (contract gate, grader selftest) for real, trace steps 3–6 through the existing results files, and draft your seams section — two seam risks with the mechanical check that guards each.",
+  "labBuild": "With Claude, build scorecard.py: run the full protocol on your clone (gates → campaign → reconcile → route derivation) and emit the five-line scorecard plus the six-competency rubric with evidence pointers — then break one gate on purpose and confirm the scorecard refuses to render."
+}

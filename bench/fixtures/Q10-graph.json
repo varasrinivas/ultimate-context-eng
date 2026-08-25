@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q10",
+  "mode" : "graph",
+  "answer" : "Eligibility denials: PA-1005 for member M-2002 (ELIGIBILITY: plan tier STANDARD does not cover surgical procedures); PA-1009 for member M-2004 (ELIGIBILITY: plan status LAPSED).",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 500,
+    "output_tokens" : 44,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

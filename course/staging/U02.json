@@ -1,0 +1,91 @@
+{
+  "id": "U02",
+  "track": 1,
+  "title": "Measure First — the Baseline Everything Must Beat",
+  "subtitle": "Per-call receipts, graded campaigns, fresh-session medians, and the honesty rules that keep numbers meaningful",
+  "icon": "📏",
+  "color": "#4a6741",
+  "topics": [
+    "Two instruments: the in-app Token Lens (per call) and the external campaign harness (per grid) — and why they must agree",
+    "The baseline grid: 10 modes × 10 standing questions, every cell graded against its answer key",
+    "Fresh-session medians: identical live sessions vary up to 2x, so single runs are coin flips",
+    "The Three Quantities: mechanical floors, other people's sessions, and your stack live — three correct answers to different questions",
+    "The canary rule: an arm with no fallback is the only arm that can't hide a broken instrument"
+  ],
+  "analogy": {
+    "title": "The Clinical Trial, Not the Testimonial",
+    "text": "A drug that 'worked for my cousin' is a testimonial; a drug tested against a control group, with predefined success criteria, on enough patients to beat luck, is a trial. Token savings claims are drowning in testimonials — one favorable run, no control, no definition of 'worked.' This module sets up the trial: a fixed question set with predefined answer keys (the success criteria), a naive control arm, every result graded, and repetition rules for when the runs are live and noisy. Only then does a number mean something."
+  },
+  "antiPatterns": [
+    "Benchmarking without answer keys — a grid of token counts where half the cheap cells might be wrong answers nobody checked",
+    "Single-run live numbers — the parent course measured identical fresh sessions varying up to 2x on the same question; one run is a coin flip wearing a lab coat",
+    "Trusting an arm that can silently fall back — a broken retrieval server behind an agent with file access produces plausible numbers for weeks (the canary story)"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Baseline Grid — This Course's Control Group",
+      "body": "<p>Everything this course claims is anchored to one artifact: the <strong>graded baseline grid</strong> — all ten modes × all ten standing questions, every cell carrying <em>tokens and a verdict</em>. Median input tokens per mode (replay grid, <em>synthetic-pre-recording</em> labels; regenerate any time with <code>python bench/run_campaign.py --modes ... --replay</code>):</p><p><code>naive 1,696 · isolated 1,805 · cached 731 · budgeted 560 · graph 444 · jit 251 · routed 239 · compressed 231 · notes 198 · okf 186</code></p><p>Correctness: <strong>every mode passes every key except two disclosed teaching failures</strong> — naive fails Q7 (a fabricated date of birth for member M-2003, whose record is redacted; fixture labeled <em>synthetic-teaching-failure</em>) and compressed fails Q9 (its abstraction drops PA-1004). So naive and compressed grade 90%, everything else 100%. Read the grid the way this course always will: <em>cheapest correct</em>, per question class — okf owns canonical questions (Q3: 186 vs naive's 1,696, 9.1x), notes owns aggregation, and nothing beats naive by enough to matter on the user layer, because the question was never the problem.</p><p>When the app runs live (<code>ANTHROPIC_API_KEY</code> + <code>MEDFLOW_LIVE=1</code>), recorded fixtures replace the synthetic ones and the same commands regenerate this grid with API-measured usage. The labels on every receipt tell you which world a number came from — that labeling discipline is not optional bookkeeping, it IS the Honesty Rule.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Methodology: Medians, Quantities, Canaries",
+      "body": "<p>Three rules travel with every number, all inherited from measured experience in the <a href=\"../../knowledge-graph/output/CAPSTONE-2-java-token-benchmark.html\" target=\"_blank\" rel=\"noopener\">parent course's live campaigns</a>.</p><p><strong>Fresh-session medians.</strong> Replay is deterministic, but live sessions are not: the parent course measured identical fresh sessions varying up to 2x on the same question — one session answered in 114K tokens, its twin in 228K. Live claims therefore report <em>medians of ≥3 independent sessions</em> (min–max shown), never single runs.</p><p><strong>The Three Quantities.</strong> A mechanical floor (worst-case arithmetic, no model), other people's session ranges (their stack, their tasks), and your stack measured live are three different numbers that are all 'correct.' The parent course watched the same graph tool score 33.7x mechanical, lose 71% in one live integration, and win 26% in another. Only the measurement on <em>your</em> stack, in <em>your</em> integration mode, describes your setup — which is why this module's lab makes you generate the grid rather than read it.</p><p><strong>The canary rule.</strong> The parent course's first two live campaigns were invalid because the retrieval server crashed silently at startup — and the agent, having file access as a fallback, produced plausible numbers anyway. The failure was caught only by a <em>forced</em> arm with no fallback to hide behind. Corollary here: the campaign runner cross-checks the app's in-receipt verdict against the external grader on every cell and warns on any mismatch. Two instruments, one truth — an instrument that can't disagree can't be trusted to agree.</p>"
+    },
+    {
+      "type": "code",
+      "title": "Generate the Grid Yourself",
+      "language": "bash",
+      "code": "# backend running in replay mode (no key needed)\ncd bench\npython keys/generate_keys.py        # validates the seed contract first\npython verify_selftest.py           # the grader must catch planted failures\npython run_campaign.py \\\n  --modes naive,budgeted,compressed,cached,jit,graph,okf,notes,isolated,routed \\\n  --replay --out results/replay-fullgrid.json\n# per-cell: 'Q7 naive r0 1,686 tok FAIL (SAVINGS VOID)'\n# summary:  mode | graded | correct% | median tok (correct only)"
+    },
+    {
+      "type": "quiz",
+      "question": "Your live A/B run shows strategy B saving 34% on one session each. WHY can't you ship that number?",
+      "options": [
+        "A. 34% is too small to matter",
+        "B. Session variance up to 2x means a single pair can show 34% from luck alone — medians of at least 3 fresh sessions per arm are the minimum reportable unit",
+        "C. Live numbers are always invalid; only replay counts",
+        "D. Because B wasn't graded"
+      ],
+      "correct": 1,
+      "explanation": "One run per arm is a coin flip. (And if B also wasn't graded, that's a second, independent reason — but the variance alone already kills the claim.)"
+    },
+    {
+      "type": "quiz",
+      "question": "A vendor's page says their tool is '33x cheaper.' Your live pilot shows it roughly break-even. WHEN are both numbers true?",
+      "options": [
+        "A. Never — one of them is lying",
+        "B. When the vendor measured a mechanical floor (worst-case arithmetic) and you measured your stack live — different quantities, both correct, only yours describes your setup",
+        "C. When the vendor used a bigger model",
+        "D. When your pilot was too short"
+      ],
+      "correct": 1,
+      "explanation": "The Three Quantities. The parent course reproduced exactly this: 33.7x mechanical, a live loss in one integration mode, a live win in another — same tool, same repo."
+    },
+    {
+      "type": "quiz",
+      "question": "WHY does the campaign runner grade every answer itself, even though the app's receipt already carries a verdict?",
+      "options": [
+        "A. Redundancy for performance",
+        "B. Because the app might be slow",
+        "C. Because a measurement system must be able to catch its own instrument lying — two independent graders that must agree is the cheapest insurance against the silent-failure class that invalidated the parent course's first campaigns",
+        "D. Because the harness uses a better model to grade"
+      ],
+      "correct": 2,
+      "explanation": "The canary rule generalized: verification you can't cross-check is decoration. Both graders run the same deterministic keys; any mismatch is loud."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "The unbeatable baseline nobody recorded: teams optimize for months without a naive control grid, so no claim of improvement can ever be audited",
+        "Averaging across question classes: one mean hides that okf wins canonical and loses nothing, while isolated loses every single-shot — per-class cheapest-correct is the actionable view",
+        "Grading only the happy path: an answer key set with no abstention traps can't catch fabrication — Q7 exists precisely to punish confident wrongness"
+      ]
+    }
+  ],
+  "takeaway": "Record the graded naive baseline before touching a single lever — every future claim is a comparison against it, at medians, with two graders that must agree.",
+  "labUnderstand": "Run the grader selftest (watch it catch a planted wrong threshold and a fabricated DOB), then generate the full 10×10 graded grid yourself and identify the cheapest-correct mode per question class.",
+  "labBuild": "Have Claude write class_report.py — a script that reads results/replay-fullgrid.json and produces the per-class cheapest-correct table with savings-void annotations, matching the module's numbers exactly."
+}

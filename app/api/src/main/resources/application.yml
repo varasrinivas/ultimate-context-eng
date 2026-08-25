@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:medflow;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    open-in-view: true
+
+medflow:
+  seed-path: ../../bench/seed/dataset.json
+  fixtures-path: ../../bench/fixtures
+  model: claude-sonnet-4-6
+  live: ${MEDFLOW_LIVE:false}
+  abstention-enabled: true

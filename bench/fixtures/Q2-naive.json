@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q2",
+  "mode" : "naive",
+  "answer" : "Requests in MANUAL_REVIEW: PA-1002 (missing Neurological deficit present); PA-1004 (missing Failed 12 weeks conservative management); PA-1010 (missing Witnessed apneas or BMI >= 35 and No prior positive home sleep test).",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 1697,
+    "output_tokens" : 55,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

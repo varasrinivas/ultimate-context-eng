@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q8",
+  "mode" : "compressed",
+  "answer" : "There is no note by Dr. Rivera on PA-1010 — insufficient evidence to say what such a note contains.",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 193,
+    "output_tokens" : 24,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

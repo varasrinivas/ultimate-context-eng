@@ -1,0 +1,73 @@
+{
+  "id": "U03",
+  "track": 2,
+  "title": "Write: External Memory",
+  "subtitle": "Persisting context outside the window — scratchpads, structured notes, and curated files the model reads back on demand",
+  "icon": "📝",
+  "color": "#2e6b8a",
+  "topics": [
+    "The write family: save context outside the window, read back only what the task needs [LC-WSCI]",
+    "Structured note-taking (agentic memory): decisions, open issues, and identifiers — not transcripts [ANTHROPIC-CE]",
+    "The app's notes mode: session notes replace raw history on every subsequent ask",
+    "Curated write artifacts beyond the session: canonical concept files and project context files",
+    "The write trade: an upkeep cost per turn buys a shrinking history layer forever"
+  ],
+  "analogy": {
+    "title": "The Ward Nurse's Handover Sheet",
+    "text": "A hospital shift change does not replay the last twelve hours of hallway conversation to the incoming nurse. The outgoing nurse maintains a handover sheet — patient, status, meds given, watch-for — updated as events happen, structured the same way every shift. Twelve hours of noise become one sheet of load-bearing facts; the incoming nurse reads it in two minutes and asks about anything unclear. Notes mode is the handover sheet; naive history is making the new nurse listen to the hallway tape."
+  },
+  "antiPatterns": [
+    "Transcript hoarding disguised as memory: 'notes' that are just pasted conversation chunks — same tokens, new label, no structure to read back selectively",
+    "Write-only memory: notes accumulate forever and are never pruned or read back — the sheet becomes a second history layer with worse formatting",
+    "Unstructured prose notes: without fixed fields (decision, open issue, identifier), the reader model has to re-derive what mattered — spending the tokens the notes were meant to save"
+  ],
+  "crosslinks": [],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Write Family, Precisely",
+      "body": "<p><strong>Write</strong> means saving context outside the window so it doesn't ride along on every call (<a href=\"https://www.langchain.com/blog/context-engineering-for-agents\" target=\"_blank\" rel=\"noopener\">[LC-WSCI]</a>). Anthropic's guidance names the discipline <strong>structured note-taking</strong> — agentic memory that persists <em>decisions, unresolved issues, and critical identifiers</em> rather than transcripts, retrieved later to maintain coherence across long work (<a href=\"https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents\" target=\"_blank\" rel=\"noopener\">[ANTHROPIC-CE]</a>).</p><p>The key word is <em>structured</em>. A note like <code>PA-1002 | MANUAL_REVIEW | missing: C-72148-2 | reviewer asked about EMG timing</code> costs ~20 tokens and answers three future questions. The same information buried in four turns of chat costs hundreds and answers nothing until re-read in full. Write is a trade with two sides: you pay a small upkeep cost at write time (deciding what's load-bearing, appending the note) and collect on every subsequent call whose history layer would otherwise have grown.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Notes Mode on the Receipt",
+      "body": "<p>Flip MedFlow to <strong>notes</strong> and ask a few questions in one session. After each answer the backend appends structured notes to a session store; every subsequent ask loads the notes and <em>drops raw history</em>. On the receipt: the history layer collapses, a small retrieved-notes line appears, and Q9 — the member-history summary that naive answers for 1,700 tokens — bills <strong>167 tokens, PASS</strong> (replay grid, synthetic-pre-recording). Across the whole question set, notes medians <strong>198 tokens at 100% correctness</strong> — the second-cheapest mode in the grid, and the cheapest on aggregation questions, because aggregations are exactly what good notes pre-compute.</p><p>Beyond the session, the write family scales into <strong>curated artifacts</strong>: canonical concept files that settle a fact once (U05 meets them as okf mode), and project context files like CLAUDE.md that orient every future session. The parent graph course measured both at repository scale — its OKF bundles and layered-CLAUDE.md arms are this family industrialized (<a href=\"../../knowledge-graph/output/M06-okf-specification.html\" target=\"_blank\" rel=\"noopener\">KG M06–M08</a>). The kit's memory track (M12–M15) covers the session-to-persistent ladder in depth (<a href=\"../../context-eng-kit/course/index.html\" target=\"_blank\" rel=\"noopener\">context-eng-kit</a>).</p>"
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN does notes mode beat compressed history summarization for a long review session?",
+      "options": [
+        "A. Always — notes are newer",
+        "B. When the session has identifiable milestones and load-bearing identifiers: notes capture them at write time with zero loss, while summarization must re-decide what mattered after the fact and can drop a fact it didn't know was load-bearing",
+        "C. When the model is small",
+        "D. Only when caching is off"
+      ],
+      "correct": 1,
+      "explanation": "Task-context alignment [ANTHROPIC-CE]: note-taking fits iterative work with milestones. Compression decides retroactively what mattered; structured writes decide at the moment of knowing — which is why compressed dropped PA-1004 on Q9 and notes didn't."
+    },
+    {
+      "type": "quiz",
+      "question": "Your notes store has grown to 3,000 tokens after a week of sessions and every ask now ships all of it. WHY has write stopped working?",
+      "options": [
+        "A. Notes were a bad idea for this workload",
+        "B. The store violated write's second half: persistence without selective read-back just relocated the history problem — notes need structure and retrieval (read back only what this ask touches), or pruning tied to resolved issues",
+        "C. The model's window is too small",
+        "D. It hasn't stopped working — 3,000 tokens is fine"
+      ],
+      "correct": 1,
+      "explanation": "Write = save outside AND read back selectively. A monotonically growing, fully-shipped store is the write-only anti-pattern — the handover sheet has become the hallway tape."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "The eternal scratchpad: no pruning rule, so week-old resolved issues ride into every call — notes need a lifecycle (open → resolved → archived), not just an append",
+        "Notes without identifiers: 'discussed the MRI request' instead of 'PA-1002' — un-look-up-able, un-gradeable, and the first thing a future answer will get wrong",
+        "Trusting notes you never audit: a wrong fact written once is repeated forever with the confidence of memory — graded questions (the stamp) are how a wrong note gets caught"
+      ]
+    }
+  ],
+  "takeaway": "Write context out of the window as structured, identifier-bearing notes at the moment of knowing — and read back selectively, or you've only renamed the history problem.",
+  "labUnderstand": "Run a three-question session in naive mode and the same session in notes mode; watch the history layer collapse on the receipts and the session sparkline flatten, then inspect the note store and find the exact line that answered Q9 for 167 tokens.",
+  "labBuild": "Have Claude write a session-notes evaluator: replay a scripted five-ask session in notes mode, extract the note store, and assert every load-bearing identifier (PA-1001, PA-1004, statuses) survived into notes while total session input stayed under a budget."
+}

@@ -1,0 +1,92 @@
+{
+  "id": "U09",
+  "track": 3,
+  "title": "Isolate — Sub-Agents & Clean Windows",
+  "subtitle": "Split the mess into a clean window, return only the conclusion — and pay isolation's honest price on single questions",
+  "icon": "🗜️",
+  "color": "#b8860b",
+  "topics": [
+    "The isolate strategy — a sub-agent's exploration stays in its own window",
+    "The condensed hand-back — 1–2K-token summaries, not transcripts",
+    "Isolation's price — MedFlow's isolated mode costs MORE than naive on single questions",
+    "When the price inverts — long sessions and parallel exploration",
+    "Task-context alignment — compaction vs notes vs sub-agents, the full table"
+  ],
+  "analogy": {
+    "title": "Sending a Junior to the Archives",
+    "text": "A partner preparing for trial doesn't read forty boxes of discovery herself — she sends a junior associate, whose desk gets buried in folders, sticky notes, and dead ends. What comes back to the partner is a two-page memo. The mess stayed in the archive room; only the conclusion crossed the threshold. But notice the economics: for ONE quick question, sending the junior costs more than looking it up yourself — the briefing, the walk, the memo-writing. The junior pays off when the digging is deep, parallel, or would trash the partner's own desk for the rest of the week."
+  },
+  "antiPatterns": [
+    "Isolation as a reflex — spawning a sub-agent for a one-line lookup pays the briefing tax for nothing; MedFlow's isolated mode is the most expensive receipt on the board for exactly this reason (median 1,805 vs naive 1,696, replay grid)",
+    "Transcript hand-backs — a sub-agent that returns its whole exploration re-imports the mess isolation existed to contain",
+    "Unbriefed juniors — a sub-agent with a vague charter explores everything and concludes nothing; the hand-back contract (scope + summary budget) IS the technique"
+  ],
+  "crosslinks": [
+    {"type": "kit", "label": "Kit M26 — Multi-Agent Context Sharing"},
+    {"type": "kg", "label": "KG M12 — subagent exploration keeps reads out of the main window"}
+  ],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Fourth Strategy: Split It",
+      "body": "<p><strong>Isolate</strong> is the last of the four canonical strategies [LC-WSCI]: 'give a sub-agent its own clean window, let it do the messy work, and return only the conclusion to the parent.' Anthropic's architecture guidance is concrete: specialized sub-agents 'handle focused tasks with clean context windows, returning condensed summaries of 1,000–2,000 tokens' to the coordinator [ANTHROPIC-CE].</p><p>MedFlow's <code>isolated</code> mode implements the honest version: a second model call receives a minimal, clean context for the data-gathering subtask, and its ≤1,500-token summary — not its working — feeds the main answer. The sub-call's tokens land in the <em>tool</em> layer of the receipt, because isolation's price should be visible, not hidden in another window.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Honest Receipt: Isolation Costs More Here",
+      "body": "<p>Read the grid without flinching: isolated's median is <strong>1,805 tokens — MORE than naive's 1,696</strong> — and it is the most expensive mode on every single standing question (replay grid, synthetic-pre-recording). Q9: isolated 1,796 vs notes 167. The reason is structural: our standing questions are single-shot, and a single-shot task pays the sub-agent's full briefing + exploration + summary on top of the main call, while amortizing it over exactly one answer.</p><p>This is not a failed mode — it is the course's clearest demonstration that <strong>strategies have task shapes</strong>. A benchmark of one-question sessions is precisely the shape isolation is worst at. Publishing this number anyway, labeled, is the Honesty Rule doing its job: the same rule that voided compressed's Q9 'saving' protects isolated's honest loss from being hidden.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Where Isolation Wins",
+      "body": "<p>Invert the shape and the price inverts. <strong>Long sessions</strong>: the sub-agent's exploration never enters the parent window, so it never compounds — the parent's later calls don't re-carry it, while naive re-pays its dumps on every turn (U08's climbing sparkline). <strong>Parallel exploration</strong>: three sub-agents reading three members' histories concurrently return three memos; the parent pays 3×~1,500 instead of 3× full transcripts <em>forever after</em>. <strong>Contamination control</strong>: a sub-agent that waded through irrelevant records can't pollute the parent's attention budget — the parent only ever saw the memo.</p><p>The parent KG course measured the same pattern at repo scale (M12: a subagent's 40 file reads stay in its context; the main conversation gets a 200-word summary). The kit's M26 quantifies the sharing-pattern costs. The rule of thumb: isolate when the <em>exploration</em> is bigger than the <em>conclusion</em> — and will be referenced again.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Alignment Table, Complete",
+      "body": "<p>Track 3 closes with Anthropic's full task-context alignment [ANTHROPIC-CE]: <strong>compaction</strong> for extensive back-and-forth needing conversational continuity; <strong>note-taking</strong> for iterative work with identifiable milestones; <strong>sub-agents</strong> for complex exploration that benefits from parallelism or would trash the parent's window. These are not competing brands — they are answers to different task shapes, and U12 will turn this table plus the measured grid into a router.</p><p>The receipts you've now read make the table concrete: compaction's saw-tooth, notes' flat 198, isolation's expensive-now-cheap-later. Choosing among them from evidence rather than fashion is the competency this track built.</p>"
+    },
+    {
+      "type": "code",
+      "title": "The Hand-Back Contract",
+      "language": "python",
+      "code": "# Isolation lives or dies by the hand-back contract: bounded scope in,\n# bounded summary out. (Numbers cited: bench/results/fullgrid-compact.csv.)\n\nSUMMARY_BUDGET_TOKENS = 1500\n\ndef isolated_subtask(charter: str, records: list[dict]) -> str:\n    \"\"\"Simulates the sub-agent call: messy exploration stays in HERE.\"\"\"\n    # ... imagine 40 records read, dead ends, re-reads: none of it escapes ...\n    relevant = [r for r in records if r[\"member\"] == \"M-2001\"]\n    summary = (\"MEMO re \" + charter + \":\\n\" +\n               \"\\n\".join(f\"  {r['id']}: {r['decision']} (score {r['score']})\"\n                          for r in relevant) +\n               \"\\n  No eligibility denials on file for this member.\")\n    # the contract, enforced: a memo, never a transcript\n    assert len(summary) // 4 <= SUMMARY_BUDGET_TOKENS, \"hand-back over budget\"\n    return summary\n\ndef parent_ask(question: str, records: list[dict]) -> str:\n    memo = isolated_subtask(\"M-2001 authorization history\", records)\n    # parent context = question + memo. The archive room stays behind.\n    parent_context = f\"{memo}\\n\\nQUESTION: {question}\"\n    print(f\"parent carries {len(parent_context)//4} tokens - not the exploration\")\n    return parent_context\n\nrecords = [\n    {\"id\": \"PA-1001\", \"member\": \"M-2001\", \"decision\": \"APPROVED\", \"score\": 100},\n    {\"id\": \"PA-1004\", \"member\": \"M-2001\", \"decision\": \"MANUAL_REVIEW\", \"score\": 65},\n    {\"id\": \"PA-1003\", \"member\": \"M-2005\", \"decision\": \"DENIED\", \"score\": 25},\n]\nparent_ask(\"Summarize M-2001's history\", records)\n# One question: this costs MORE than just answering (isolated 1,796 vs\n# notes 167 on Q9). Ten follow-ups that reuse the memo: the price inverts.\n# The contract is what makes either arithmetic possible."
+    },
+    {
+      "type": "quiz",
+      "question": "MedFlow's isolated mode is the most expensive mode on every standing question. WHY does the course ship that number instead of tuning the benchmark until isolation wins?",
+      "options": [
+        "A. An oversight — the benchmark should be fixed",
+        "B. Because the grid measures single-shot questions — isolation's worst shape — and publishing the labeled loss teaches task-context alignment; hiding it would be the same sin as celebrating compressed's voided Q9 saving",
+        "C. Because isolation is deprecated",
+        "D. Because sub-agents only work with larger models"
+      ],
+      "correct": 1,
+      "explanation": "Honesty Rule: numbers state their conditions. Isolated 1,805 median vs naive 1,696 on one-shot questions is TRUE and shape-dependent — the same mode wins long parallel sessions where exploration would otherwise compound. A benchmark that only shows wins is marketing."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN is spawning a sub-agent the right call for a MedFlow reviewer's request?",
+      "options": [
+        "A. Always — clean windows are always better",
+        "B. For 'check whether any of our 6 members has inconsistent determinations across their full history' — deep parallel exploration whose conclusion is small and reusable — not for 'what's PA-1002's score?'",
+        "C. Whenever the question mentions more than one entity",
+        "D. Only when the main window is completely full"
+      ],
+      "correct": 1,
+      "explanation": "Isolate when exploration >> conclusion and the conclusion will be reused. The audit sweep buries a desk (perfect junior work, parallelizable per member); the score lookup is one record — paying briefing+memo tax for it is the anti-pattern the 1,805 median prices."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Sub-agent theater — 'multi-agent' architectures where every agent shares one transcript anyway; that's naive mode with extra steps and extra cost (the kit's M26 hub-vs-blackboard token math)",
+        "Recursive delegation — sub-agents spawning sub-agents until the summaries' summaries lose the load-bearing facts; depth needs the same fidelity discipline as compression",
+        "Hidden accounting — folding sub-call tokens into nowhere so isolation looks free; MedFlow bills them to the tool layer so the receipt tells the whole truth"
+      ]
+    }
+  ],
+  "takeaway": "Isolation moves the mess to a clean window and returns only the conclusion — a tax on single questions, a bargain on deep parallel work — and the receipt should always show the tax.",
+  "labUnderstand": "Compare Q9 receipts in isolated (1,796 — tool layer carries the sub-call) vs notes (167) and naive (1,700), then reason about the 10-follow-up session where isolation's memo amortizes. You compute the break-even turn count yourself.",
+  "labBuild": "With Claude writing the code, build handback_contract.py: an isolated subtask with an enforced memo budget, then a 12-turn simulated session comparing cumulative cost of naive re-carry vs memo reuse. Break it on purpose by returning the transcript instead of the memo and watch the contract assertion refuse the hand-back."
+}

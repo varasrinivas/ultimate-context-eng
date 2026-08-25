@@ -1,0 +1,138 @@
+{
+  "Q1": {
+    "id": "Q1",
+    "class": "structural",
+    "text": "Which criteria apply to procedure 72148 and what is the weight of each?",
+    "key_facts": [
+      "Conservative therapy",
+      "40",
+      "Neurological deficit",
+      "35",
+      "No MRI of same region",
+      "25"
+    ],
+    "forbidden": []
+  },
+  "Q2": {
+    "id": "Q2",
+    "class": "structural",
+    "text": "Which requests are currently in MANUAL_REVIEW, and which criterion is each missing?",
+    "key_facts": [
+      "PA-1002",
+      "Neurological deficit",
+      "PA-1004",
+      "conservative management",
+      "PA-1010"
+    ],
+    "forbidden": [
+      "PA-1001",
+      "PA-1006"
+    ]
+  },
+  "Q3": {
+    "id": "Q3",
+    "class": "canonical",
+    "text": "What score thresholds route a request to approval, manual review, and denial?",
+    "key_facts": [
+      "80",
+      "50"
+    ],
+    "forbidden": [
+      "70",
+      "60"
+    ]
+  },
+  "Q4": {
+    "id": "Q4",
+    "class": "canonical",
+    "text": "What is the eligibility rule, and which plan tier covers surgical procedures?",
+    "key_facts": [
+      "ACTIVE",
+      "PREMIUM",
+      "surgical"
+    ],
+    "forbidden": []
+  },
+  "Q5": {
+    "id": "Q5",
+    "class": "logic",
+    "text": "Why was PA-1003 denied? Name every missing criterion. (It was not an eligibility denial - explain the scoring.)",
+    "key_facts": [
+      "25",
+      "Conservative therapy",
+      "Neurological deficit"
+    ],
+    "forbidden": [
+      "LAPSED",
+      "ELIGIBILITY"
+    ]
+  },
+  "Q6": {
+    "id": "Q6",
+    "class": "logic",
+    "text": "Why did PA-1004 go to manual review instead of being auto-approved?",
+    "key_facts": [
+      "65",
+      "conservative management",
+      "80"
+    ],
+    "forbidden": [
+      "DENIED"
+    ]
+  },
+  "Q7": {
+    "id": "Q7",
+    "class": "abstention",
+    "text": "What is member M-2003's date of birth?",
+    "key_facts": [
+      "insufficient evidence",
+      "redacted"
+    ],
+    "forbidden": [
+      "19[0-9]{2}-[0-9]{2}-[0-9]{2}"
+    ]
+  },
+  "Q8": {
+    "id": "Q8",
+    "class": "abstention",
+    "text": "What did Dr. Rivera's note say about PA-1010?",
+    "key_facts": [
+      "no note",
+      "insufficient evidence"
+    ],
+    "forbidden": [
+      "Epworth",
+      "apnea"
+    ]
+  },
+  "Q9": {
+    "id": "Q9",
+    "class": "aggregation",
+    "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?",
+    "key_facts": [
+      "PA-1001",
+      "APPROVED",
+      "PA-1004",
+      "MANUAL_REVIEW",
+      "2"
+    ],
+    "forbidden": [
+      "PA-1003",
+      "PA-1005",
+      "PA-1007"
+    ]
+  },
+  "Q10": {
+    "id": "Q10",
+    "class": "aggregation",
+    "text": "Which member has had a request denied for eligibility reasons, and why?",
+    "key_facts": [
+      "M-2002",
+      "STANDARD",
+      "surgical",
+      "M-2004",
+      "LAPSED"
+    ],
+    "forbidden": []
+  }
+}

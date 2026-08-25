@@ -1,0 +1,12 @@
+{
+  "question_id" : "Q3",
+  "mode" : "jit",
+  "answer" : "Score >= 80 is auto-approved; score >= 50 goes to manual review; anything lower is denied. Both thresholds are inclusive.",
+  "source" : "synthetic-pre-recording",
+  "usage" : {
+    "input_tokens" : 285,
+    "output_tokens" : 30,
+    "cache_read_input_tokens" : 0,
+    "cache_creation_input_tokens" : 0
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "id": "U07",
+  "track": 3,
+  "title": "Compress — Budgets to Fidelity",
+  "subtitle": "Per-layer budgets, prune → extract-verbatim → abstract, and the assertion that decides whether a saving was real",
+  "icon": "🗜️",
+  "color": "#b8860b",
+  "topics": [
+    "Per-layer budgets — caps with whole-record eviction, never mid-record truncation",
+    "The compression ladder — prune (safe), extract verbatim (faithful), abstract (lossy)",
+    "Fidelity as a hard assertion — load-bearing identifiers must survive, provably",
+    "Ratio × fidelity — two axes, and only one of them shows up in the token count",
+    "The star exhibit — a 7.3x saving that the correctness stamp voids"
+  ],
+  "analogy": {
+    "title": "Shrinking the Patient Chart",
+    "text": "A specialist needs a 200-page chart briefed onto one page. First you remove what this visit doesn't need — the resolved childhood cases go (pruning). Then you copy the allergy list and current medications word for word, because 'penicillin' paraphrased as 'some antibiotics' can kill someone (extraction: load-bearing facts stay verbatim). Only the routine history gets rewritten smaller — 'three uneventful checkups 2019-2022' (abstraction). And before the brief leaves your desk, a nurse checks every allergy against the original. That final check is not bureaucracy; it is the only thing that makes the one-pager safe to act on."
+  },
+  "antiPatterns": [
+    "Abstracting identifiers — the summary that turns 'PA-1001 APPROVED, PA-1004 MANUAL_REVIEW' into 'a history of consistent approvals' saved 87% of tokens and is wrong (Q9 compressed, replay grid: FAIL — savings void)",
+    "Mid-record truncation — cutting a JSON record at the byte budget leaves the model a corrupted fact; budgets evict whole records or nothing",
+    "Fidelity by vibes — 'the summary looks fine' is not a check; only an assertion that names each surviving identifier can fail loudly enough to matter"
+  ],
+  "crosslinks": [
+    {"type": "kit", "label": "Kit M03 — Context Economics (the budget knee)"},
+    {"type": "kit", "label": "Kit M18 — Context Compression (the ladder's origin)"},
+    {"type": "kg", "label": "KG Capstone 2 — fidelity checks on graph exports"}
+  ],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Budgets: the Blunt Instrument That Works",
+      "body": "<p>The <code>budgeted</code> assembler enforces per-layer caps — retrieval may spend so much, history so much — and when a layer overflows, it <strong>evicts whole records</strong>, oldest first, never truncating mid-JSON. That single blunt rule takes naive's ~1,695-token receipts to <strong>~560 across all ten questions</strong> at 100% correctness (replay grid). No intelligence, no summarization — just a ceiling and a clean eviction rule.</p><p>Budgets are where compression should <em>start</em>, because they are the only technique with zero fidelity risk on what remains: every fact still present is still verbatim. Their ceiling is their limit — you can only evict what wasn't needed. Going below ~560 requires the ladder.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Ladder: Prune, Extract, Abstract",
+      "body": "<p>The <code>compressed</code> assembler climbs three rungs, safest first. <strong>Prune</strong>: drop what this question doesn't touch — other members' records, resolved requests (removal is lossless for what stays). <strong>Extract verbatim</strong>: the load-bearing facts survive as exact lines — <code>PA-1004 | MANUAL_REVIEW | 65 | missing C-29881-2</code> — never paraphrased, because identifiers, statuses, scores and thresholds are the facts answers turn on. <strong>Abstract</strong>: only the routine remainder gets restated smaller ('2 requests total, latest 2026').</p><p>Result: <strong>~231 median tokens, a 7.3x reduction over naive</strong> — the cheapest generative-free receipts on the board after okf. The ladder's order is the discipline: each rung is riskier than the one before, so each rung only gets what the previous rung couldn't shrink.</p>"
+    },
+    {
+      "type": "content",
+      "title": "The Star Exhibit: When 7.3x Is Worth Nothing",
+      "body": "<p>Open the Compare drawer on Q9 ('Summarize M-2001's history'): <code>compressed</code> vs <code>naive</code>. Compressed spends 208 tokens against naive's 1,700 — and its stamp reads <strong>✗ FAILED</strong>. The abstraction rung swallowed PA-1004: the summary says 'consistent approvals' and the manual-review request is simply gone. The drawer prints <strong>SAVINGS VOID</strong>, and the campaign table scores compressed 90%, not 100%.</p><p>(Disclosure, per the Honesty Rule: this failure is a labeled <code>synthetic-teaching-failure</code> fixture — a deliberately preserved specimen of the exact failure the fidelity assertion exists to catch, the same class the kit's M18 lab produces live.) The lesson is the course's center of gravity: <strong>a token number without a correctness verdict is not a measurement</strong>. Ratio is one axis; fidelity is the other; only the pair is real.</p>"
+    },
+    {
+      "type": "code",
+      "title": "The Fidelity Assertion — Compression's Seatbelt",
+      "language": "python",
+      "code": "# The assertion that separates compression from corruption.\n# (MedFlow's backend runs this same check inside the compressed assembler;\n#  numbers cited: bench/results/fullgrid-compact.csv, synthetic-pre-recording.)\n\ndef compress_history(requests: list[dict], budget_tokens: int = 400) -> str:\n    # 1) PRUNE: this question is about one member's history - drop the rest\n    keep = [r for r in requests if r[\"member\"] == \"M-2001\"]\n\n    # 2) EXTRACT (verbatim): load-bearing line per request - NEVER paraphrased\n    verbatim = [f\"{r['id']} | {r['decision']} | score {r['score']}\" for r in keep]\n\n    # 3) ABSTRACT: only the routine remainder\n    block = (\"HISTORY (verbatim):\\n  \" + \"\\n  \".join(verbatim) +\n             f\"\\nSUMMARY: {len(keep)} requests on file.\")\n\n    # FIDELITY CHECK: every load-bearing identifier must survive - loudly.\n    for r in keep:\n        assert r[\"id\"] in block, f\"LOST load-bearing id {r['id']} - refusing to ship\"\n    assert len(block) // 4 <= budget_tokens, \"over budget - evict, don't truncate\"\n    return block\n\nrequests = [\n    {\"id\": \"PA-1001\", \"member\": \"M-2001\", \"decision\": \"APPROVED\", \"score\": 100},\n    {\"id\": \"PA-1004\", \"member\": \"M-2001\", \"decision\": \"MANUAL_REVIEW\", \"score\": 65},\n    {\"id\": \"PA-1003\", \"member\": \"M-2005\", \"decision\": \"DENIED\", \"score\": 25},\n]\nprint(compress_history(requests))\n# Now emulate the Q9 failure: replace the verbatim rung with an LLM-style\n# summary that omits PA-1004 - the assertion fires. That AssertionError is\n# the difference between a compressor and a fact-shredder."
+    },
+    {
+      "type": "quiz",
+      "question": "Your compressor hits 12x reduction by abstracting everything, and spot-checks 'look fine.' WHY is this worse than the budgeted mode's boring 3x?",
+      "options": [
+        "A. It isn't — 12x beats 3x",
+        "B. Abstraction without a fidelity assertion loses load-bearing facts silently; budgeted's 3x is verbatim-safe by construction, so its savings are all real — Q9 shows a 8.2x 'saving' scored as void",
+        "C. Abstraction is slower",
+        "D. 12x exceeds the model's compression limit"
+      ],
+      "correct": 1,
+      "explanation": "Ratio × fidelity: budgeted eviction can only remove, never rewrite, so what remains is exact. Unchecked abstraction produced Q9's dropped PA-1004 — 208 tokens, FAIL, savings void (replay grid). A smaller number that might be wrong loses to a bigger number that is certainly right."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN is the abstract rung of the ladder the correct tool?",
+      "options": [
+        "A. Whenever the budget is tight",
+        "B. For the routine remainder only — content where no downstream decision turns on exact wording — and always behind an assertion that the load-bearing facts survived the whole block",
+        "C. For identifiers, since they compress well",
+        "D. Never — extraction should always suffice"
+      ],
+      "correct": 1,
+      "explanation": "The ladder's order is safest-first: prune what's irrelevant, extract the decision-bearing facts verbatim, and only then abstract the narrative filler. The kit's M18 rule is blunt: never abstract an exact identifier or a load-bearing decision — and the assertion is what makes the rule enforceable rather than aspirational."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Celebrating the ratio — dashboards report 'tokens saved' with no correctness column; Q9's 8.2x void saving sails through review until a clinician asks where PA-1004 went",
+        "Budget by truncation — cutting at exactly N tokens mid-record corrupts the last fact; the model then reasons confidently from half a JSON object",
+        "Assertion theater — a fidelity check that only samples, or only warns, converts the seatbelt back into decoration; it must enumerate every load-bearing id and it must throw"
+      ]
+    }
+  ],
+  "takeaway": "Compression is a safest-first ladder — prune, extract verbatim, then abstract — and a saving only exists if the fidelity assertion proves the load-bearing facts survived.",
+  "labUnderstand": "Read Q5 receipts down the ladder (naive 1,704 → budgeted 569 → compressed 247), then open the Compare drawer on Q9 and meet the 208-token receipt whose stamp voids it. You chart exactly which rung dropped PA-1004.",
+  "labBuild": "With Claude writing the code, build compress_audit.py: run the ladder over M-2001's history, assert identifier survival, and report ratio AND fidelity per rung. Break it on purpose by swapping the extract rung for abstraction and watch your own assertion fire — proving it's protection, not decoration."
+}

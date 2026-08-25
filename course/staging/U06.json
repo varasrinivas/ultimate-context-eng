@@ -1,0 +1,93 @@
+{
+  "id": "U06",
+  "track": 2,
+  "title": "The Static Surface",
+  "subtitle": "System-prompt altitude, a minimal toolset, canonical examples — and ordering it all so the cache does the paying",
+  "icon": "✍️",
+  "color": "#2e6b8a",
+  "topics": [
+    "Prompt altitude — specific enough to steer, flexible enough to generalize",
+    "Minimal viable toolset — every extra tool is rent paid on every single call",
+    "Canonical few-shot — diverse representative examples, never an edge-case museum",
+    "Static-first ordering — stable prefix first, volatile suffix last",
+    "Prompt caching — CLEAN vs DIRTY prefixes and the cache-read discount"
+  ],
+  "analogy": {
+    "title": "The Restaurant's Prep Kitchen",
+    "text": "A good restaurant doesn't chop onions after you order — the mise en place is prepped once, before service, and every order reuses it. The menu is short (a 40-page menu slows every table), the recipe cards show one canonical version of each dish rather than every variation ever attempted, and the line is arranged so the stable stuff sits closest to hand. Then one cook 'improves' a prep container mid-service — relabels the salt — and every subsequent order slows down while everyone re-checks. That relabeled container is a dirty cache prefix: the cost isn't the change, it's that the change invalidated everything prepped after it."
+  },
+  "antiPatterns": [
+    "Timestamp in the system prompt — one volatile token at position zero invalidates the entire cached prefix on every call; the cache-hit rate silently drops to 0%",
+    "Tool sprawl — registering every tool 'just in case' pays schema rent on every call and confuses selection; if an engineer can't say which tool applies, the model can't either [ANTHROPIC-CE]",
+    "Edge-case few-shot — stuffing examples of every weird case teaches the weirdness, not the pattern; canonical diverse examples teach the pattern"
+  ],
+  "crosslinks": [
+    {"type": "kit", "label": "Kit M04 — System Prompt Architecture"},
+    {"type": "kit", "label": "Kit M19 — Caching and Prefilling"},
+    {"type": "kg", "label": "KG M06 — index.md as a stable pre-flight read"}
+  ],
+  "sections": [
+    {
+      "type": "content",
+      "title": "The Part of Context You Design Once",
+      "body": "<p>Every receipt so far had a <em>system</em> layer — and it was the same tokens on every call. That is the static surface: the system prompt, the tool schemas, the few-shot examples. You design it once, and then every single call pays for it. Which means two disciplines apply that dynamic context never needed: <strong>make it small and right</strong> (it's rent, not groceries), and <strong>make it cacheable</strong> (rent should be discounted).</p><p>MedFlow's copilot system prompt is 65 tokens in <code>okf</code> mode. That number is a design decision, not an accident — this module is about making that decision well.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Altitude: the Goldilocks Register",
+      "body": "<p>Anthropic's guidance names the failure modes on both sides: brittle if-else prompts that hardcode every case, and vague 'be helpful' prompts that assume shared context the model doesn't have. The right <strong>altitude</strong> is 'specific enough to guide behavior effectively while remaining flexible enough to provide strong heuristics' [ANTHROPIC-CE].</p><p>MedFlow's copilot prompt says: <em>answer from the provided context; cite request IDs verbatim; if a fact is redacted or absent, say 'insufficient evidence' rather than inferring</em>. That is altitude done right — three heuristics that generalize to all ten standing questions. The brittle version would enumerate the questions; the vague version would say 'be accurate.' Both fail Q7.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Tools and Examples Are Static Context Too",
+      "body": "<p>Every registered tool ships its schema on every call — the <code>jit</code> mode's loader tool is ~90 tokens of permanent rent, which is why <code>jit</code> registers exactly one tool, not ten. The rule is <strong>minimal viable toolset</strong>: unambiguous, non-overlapping, token-efficient returns [ANTHROPIC-CE]. If adding a tool doesn't remove more tokens elsewhere (as jit's loader removes the retrieved layer), it's negative-value context.</p><p>Few-shot examples follow the same economics: they are 'pictures worth a thousand words' — but only <strong>canonical, diverse</strong> ones. One approval, one manual-review, one refusal teaches MedFlow's answer style in three examples. Twelve edge cases teach the model that this is a weird domain full of exceptions — the kit's M07 lab watched exactly that bias produce fabricated data.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Static-First Ordering: Let the Cache Pay the Rent",
+      "body": "<p>Prompt caching discounts a repeated prefix (cache reads price at ~10% of fresh input). But caching works on <em>prefixes</em>: everything before the first changed token can hit; everything after cannot. So the assembly order IS the caching strategy: <strong>stable → semi-stable → volatile</strong>. System prompt and tools first, canonical policy next, per-question context last.</p><p>The <code>cached</code> mode's receipt shows input ~731 tokens on every question — same total as its context, but on a warmed session the cache-read badge climbs and the <em>cost</em> falls. The parent KG course met this same principle at repo scale as the stable <code>index.md</code> pre-flight read; the kit's M19 CLEAN-vs-DIRTY lab is its microscope. One volatile token at the top — a timestamp, a request counter — and the discount evaporates silently. The cacheability lint in your Build lab exists because this failure has no error message.</p>"
+    },
+    {
+      "type": "code",
+      "title": "A Cacheability Lint in Twenty Lines",
+      "language": "python",
+      "code": "# Lint a static prefix for cache-killers before they cost you silently.\n# (Numbers cited in this module: bench/results/fullgrid-compact.csv,\n#  replay fixtures, source: synthetic-pre-recording.)\nimport re\n\nVOLATILE = [\n    (r\"\\b20\\d{2}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}\", \"timestamp\"),\n    (r\"\\bsession[-_ ]?id\\s*[:=]\\s*\\S+\", \"session id\"),\n    (r\"\\brequest[-_ ]?count\\s*[:=]\\s*\\d+\", \"counter\"),\n    (r\"\\buuid[0-9a-f-]{8,}\", \"uuid\"),\n]\n\ndef lint_prefix(prefix: str) -> list[str]:\n    findings = []\n    for pattern, label in VOLATILE:\n        for m in re.finditer(pattern, prefix, re.IGNORECASE):\n            findings.append(f\"{label} at char {m.start()}: {m.group(0)[:40]!r}\")\n    return findings\n\nclean = \"You are the MedFlow copilot. Cite request IDs verbatim. Refuse redacted fields.\"\ndirty = clean + \" Generated at 2026-08-25 14:02 for session_id: abc-123.\"\n\nassert lint_prefix(clean) == []\nfor f in lint_prefix(dirty):\n    print(\"CACHE-KILLER:\", f)\n# Two findings. Every call after this prefix change pays full price -\n# and nothing errors. The lint is the only alarm this failure has."
+    },
+    {
+      "type": "quiz",
+      "question": "A teammate adds 'Current time: {now}' to the top of the system prompt 'so the model knows the date.' Cache hits drop from 80% to 0% but nothing errors. WHY is this the worst position for that token?",
+      "options": [
+        "A. The model can't parse timestamps at the start of prompts",
+        "B. Caching matches prefixes — a volatile token at position zero invalidates everything after it, on every call; the same fact appended at the volatile tail would cost the cache nothing",
+        "C. Timestamps are large in tokens",
+        "D. It violates the altitude rule"
+      ],
+      "correct": 1,
+      "explanation": "The failure is positional, not informational. Static-first ordering exists so the longest possible prefix stays byte-stable; volatile facts belong after the stable block. The kit's M19 CLEAN/DIRTY lab measures this exact cliff, and it ships with no error message — only the lint or the cache-read badge reveals it."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN is adding a tool to the copilot's static surface the right call?",
+      "options": [
+        "A. Whenever a capability might someday be useful",
+        "B. When its schema rent is repaid — it removes more tokens elsewhere on typical calls (like jit's loader deleting the retrieved layer) and no existing tool overlaps it",
+        "C. When the model asks for it",
+        "D. Never — tools should be avoided in favor of retrieval"
+      ],
+      "correct": 1,
+      "explanation": "Tools are permanent static cost paid on every call. jit's single loader tool earns its ~90-token rent by collapsing retrieved from ~1,600 to near zero (Q1: 143 total vs naive 1,694, replay grid). A tool that doesn't net-remove tokens — or that overlaps another — is negative-value context [ANTHROPIC-CE]."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "The growing prompt — every incident adds a rule, nobody deletes; a year later the static surface is 4,000 tokens of scar tissue paid on every call, most of it below the altitude line",
+        "Cache theater — enabling cache_control without static-first ordering, then reporting 'caching is on' while the hit-rate is zero; the badge, not the config, is the truth",
+        "Example creep — each bug adds a few-shot example until the examples outweigh the instructions and teach contradiction"
+      ]
+    }
+  ],
+  "takeaway": "The static surface is rent paid on every call — design it at the right altitude, keep the toolset minimal and the examples canonical, and order it static-first so the cache pays most of the rent.",
+  "labUnderstand": "Warm a session in cached mode, watch the cache-read badge climb, then ask through a deliberately dirtied prefix and watch the discount vanish with zero errors. You measure the exact cost of one volatile token in the wrong position.",
+  "labBuild": "With Claude writing the code, build cache_lint.py — the volatile-token linter for static prefixes — plus a session-cost comparator that quantifies CLEAN vs DIRTY over a 10-question session. Break it on purpose by moving the timestamp to the tail and proving position, not content, was the problem."
+}

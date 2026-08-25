@@ -1,0 +1,93 @@
+{
+  "id": "U05",
+  "track": 2,
+  "title": "Select II — Just-in-Time & Structure",
+  "subtitle": "Selection beyond similarity: identifiers now and records on demand, graphs with provenance, and canonical files read deterministically",
+  "icon": "✍️",
+  "color": "#2e6b8a",
+  "topics": [
+    "Just-in-time context — carry lightweight identifiers, load records only when the task asks",
+    "Progressive disclosure — discover depth stepwise instead of pre-loading everything",
+    "Structural selection — a provenance-tagged graph answers relational questions without a data dump",
+    "Canonical selection — policy questions deserve ONE authoritative file, not a search",
+    "Matching selector to question class — the measured wins and the measured misfits"
+  ],
+  "analogy": {
+    "title": "Three Librarians",
+    "text": "Ask a library for 'everything about Rosa Delgado' and the naive clerk wheels out a full cart — that is retrieval by dump. The just-in-time librarian hands you an index card of call numbers and fetches only the two books you actually open. The archivist walks the catalog's cross-references — this record cites that one — and hands you the exact linked chain, labeling which links are printed in the catalog and which she inferred. And for 'what are the library's late fees?' the desk librarian doesn't search at all: she opens the one laminated policy sheet. Selection excellence is knowing which librarian your question deserves."
+  },
+  "antiPatterns": [
+    "Dump-by-default — sending the whole domain object graph 'to be safe', paying ~1,700 tokens for questions three librarians answer under 300 (replay grid, naive column)",
+    "Graph for everything — structural selection on a policy question costs 1,054 tokens where the canonical file costs 186 (Q4, replay grid); the wrong selector can be worse than half a dump",
+    "JIT without a loader contract — identifiers-only context with no reliable fetch tool leaves the model guessing instead of loading"
+  ],
+  "crosslinks": [
+    {"type": "kg", "label": "KG M06 — The OKF Specification (canonical files)"},
+    {"type": "kg", "label": "KG M09 — Serving Graphs over MCP (forced vs available)"},
+    {"type": "kit", "label": "Kit M09 — Retrieval Strategies (the rerank ladder)"}
+  ],
+  "sections": [
+    {
+      "type": "content",
+      "title": "Selection Is a Family, Not a Technique",
+      "body": "<p>U04 taught the retrieval ladder: retrieve wide, rerank narrow. This module adds the selectors that don't rank at all. <strong>Just-in-time selection</strong> [ANTHROPIC-CE] keeps only lightweight identifiers in context — <em>PA-1004, M-2001, 29881</em> — and loads full records through a tool the moment the task actually needs them. <strong>Structural selection</strong> answers relational questions from a knowledge graph whose edges carry provenance tags. <strong>Canonical selection</strong> answers policy questions by opening one authoritative file, deterministically — no similarity math, no ranking, no chance of retrieving the stale version.</p><p>In MedFlow these are three toggles: <code>jit</code>, <code>graph</code>, and <code>okf</code>. Same questions, three different receipts — and the differences are the lesson.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Just-in-Time: Identifiers Now, Records on Demand",
+      "body": "<p>The <code>jit</code> assembler sends the copilot a roster of identifiers plus a lookup tool, nothing more. On Q1 (criteria of procedure 72148) that costs <strong>143 input tokens vs naive's 1,694</strong> — the model asked for exactly one procedure record. The receipt shape changes too: <em>retrieved</em> nearly vanishes while <em>tool</em> appears, because the loading moved from assembly time to call time. That is Anthropic's just-in-time pattern: agents 'maintain lightweight identifiers and dynamically load relevant data at runtime' [ANTHROPIC-CE].</p><p>The cost of JIT is a round trip. On aggregation questions (Q9, Q10) it loads several records (220, 316 tokens) — still far under naive, but the win narrows as the needed-record set grows. JIT is at its best when the task touches a small, unpredictable subset of a large domain.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Structural Selection: the Graph Earns Relational Questions",
+      "body": "<p>The <code>graph</code> assembler builds a subgraph around the entities named in the question — nodes for members, requests, criteria; typed edges like <em>for_member</em> and <em>missing</em>; every edge tagged <strong>[EXTRACTED]</strong> because it came from the seeded records, not inference. On Q2 (which requests are in manual review, and what is each missing?) the subgraph costs <strong>437 tokens vs naive's 1,697</strong> and the answer cites edges, not vibes.</p><p>Now the honest part. On canonical questions the graph is the <em>wrong</em> librarian: Q3 costs 840 and Q4 costs <strong>1,054</strong> — five times okf's 186 — because policy isn't a neighborhood, so the subgraph balloons. The knowledge-graph parent course measured the same shape at repo scale: a forced graph won structural questions and lost comprehension ones. Selectors have question classes, and excellence is routing, not loyalty.</p>"
+    },
+    {
+      "type": "content",
+      "title": "Canonical Selection: One File, Zero Search",
+      "body": "<p>The <code>okf</code> assembler answers policy-class questions by including exactly one canonical concept file — thresholds, eligibility rule, redaction rule — the way the parent KG course's OKF bundles serve 'what is the canonical definition?' questions. Q3 (thresholds) costs <strong>186 tokens</strong>; Q4 (eligibility) the same 186; and on the abstention trap Q7 it is the cheapest correct answer on the board at <strong>157</strong>, because the canonical redaction rule says exactly what to refuse.</p><p>Determinism is the point: there is no similarity score to draw the stale paragraph, no rank cutoff to miss the rule. When knowledge is stable, curated, and load-bearing, <em>select the file, don't search the pile.</em></p>"
+    },
+    {
+      "type": "code",
+      "title": "The Three Selectors, Side by Side",
+      "language": "python",
+      "code": "# Replay-mode probe: one question, three selectors (backend must be running)\n# Numbers cited in this module: bench/results/fullgrid-compact.csv\n# (replay fixtures, source: synthetic-pre-recording — regenerate with\n#  bench/run_campaign.py; live mode replaces these with recorded usage)\nimport json, urllib.request\n\ndef ask(question, mode):\n    req = urllib.request.Request(\n        \"http://localhost:8080/api/copilot/ask\",\n        data=json.dumps({\"question\": question, \"mode\": mode,\n                         \"sessionId\": f\"u05-{mode}\"}).encode(),\n        headers={\"Content-Type\": \"application/json\"})\n    with urllib.request.urlopen(req, timeout=60) as r:\n        p = json.load(r)[\"primary\"]\n    rc = p[\"receipt\"]\n    return rc[\"inputTokens\"], rc[\"layers\"], rc[\"correctness\"][\"verdict\"]\n\nQ2 = (\"Which requests are currently in MANUAL_REVIEW, \"\n      \"and which criterion is each missing?\")\nQ4 = \"What is the eligibility rule, and which plan tier covers surgical procedures?\"\n\nfor q, label in [(Q2, \"relational Q2\"), (Q4, \"canonical Q4\")]:\n    for mode in (\"jit\", \"graph\", \"okf\"):\n        tokens, layers, verdict = ask(q, mode)\n        print(f\"{label:<14} {mode:<6} {tokens:>5} tok  \"\n              f\"tool={layers['tool']:>4} retrieved={layers['retrieved']:>4}  {verdict}\")\n# Expected: graph wins Q2 (437); okf wins Q4 (186) while graph pays 1,054.\n# Same selectors, opposite verdict on cost — the routing lesson in one loop."
+    },
+    {
+      "type": "quiz",
+      "question": "A reviewer asks the copilot 'What score thresholds route requests to approval and review?' Which selector should a router choose, and WHY?",
+      "options": [
+        "A. graph — thresholds connect to every request, so the subgraph is richest",
+        "B. okf — policy is stable canonical knowledge; one authoritative file answers it at the minimum token cost with zero retrieval ambiguity",
+        "C. jit — identifiers-only context is always cheapest",
+        "D. naive — policy questions need full context to be safe"
+      ],
+      "correct": 1,
+      "explanation": "Q3 measured: okf 186 tokens vs graph 840 vs naive 1,696 (replay grid). Thresholds are canonical, not relational — 'richest context' is exactly the anti-pattern; the graph's every-request neighborhood is why it costs 4.5x more here. Selection excellence is matching selector to question class."
+    },
+    {
+      "type": "quiz",
+      "question": "WHEN does just-in-time selection lose its edge over a pre-assembled dump?",
+      "options": [
+        "A. When the model is small",
+        "B. Never — JIT always wins because identifiers are tiny",
+        "C. When the task ends up needing most of the records anyway, so the round trips reload what a dump would have carried once",
+        "D. When the data contains PHI"
+      ],
+      "correct": 2,
+      "explanation": "JIT's price is the loader round trip; its win is skipping unneeded records. If the needed-record set approaches the whole domain (compare Q10's 316 vs Q1's 143), the gap to a curated dump narrows. Anthropic's guidance pairs JIT with hybrid pre-computation for exactly this reason [ANTHROPIC-CE]."
+    },
+    {
+      "type": "antipattern",
+      "title": "What Goes Wrong",
+      "items": [
+        "Selector loyalty — teams adopt 'the graph' or 'RAG' as identity and pay Q4's 1,054-vs-186 penalty on every policy question; the measured grid, not the tool's brand, decides",
+        "Similarity for policy — retrieving the thresholds by embedding search invites the stale-version failure the parent KG course demonstrated (churn-rate story); canonical questions get canonical files",
+        "Provenance-free graphs — edges without EXTRACTED/INFERRED tags turn 'the graph says so' into an untraceable claim; U10 builds on tags existing HERE"
+      ]
+    }
+  ],
+  "takeaway": "Selection excellence is routing each question class to its own selector — identifiers on demand, graphs for relations, one canonical file for policy — and the receipt tells you when you chose wrong.",
+  "labUnderstand": "Ask the same two questions (one relational, one canonical) in jit, graph, and okf modes and read the six receipts: watch the tool layer appear under jit, the graph win Q2 and lose Q4, and okf's flat 186. You chart which selector owns which question class.",
+  "labBuild": "With Claude writing the code, build selector_probe.py: a script that asks all 10 standing questions in the three selector modes, tabulates tokens and verdicts per question class, and prints the routing table U12 will later automate. Break it on purpose by routing a canonical question to graph and watching the cost triple at equal correctness."
+}

@@ -88,6 +88,6 @@
     }
   ],
   "takeaway": "Context engineering begins when you itemize the bill for every AI call — and refuse to call any saving a win until the answer survives its answer key.",
-  "labUnderstand": "Run MedFlow Copilot in replay mode, ask your first standing question, and audit the receipt by hand: verify the five layers sum to the total, find the dominant layer, and compute the course's motivating facts-to-input ratio (under 1%).",
+  "labUnderstand": "Run MedFlow Copilot in replay mode, ask your first standing question, and audit the receipt by hand: verify the five layers sum to the total, find the dominant layer, and compute the course's motivating facts-to-input ratio (~2.4% on this seed).",
   "labBuild": "Have Claude write audit_receipts.py — a script that calls the copilot API across modes and questions, checks the layers-sum-to-total reconciliation rule on every receipt, and proves itself with a --tamper flag that must produce DRIFT on every line."
 }

@@ -31,6 +31,7 @@ bench/seed     dataset.json (THE contract) · bench/keys · bench/results · ben
 course/        index.html — single-file player (kit engine: MODS / TRACK_META / renderVisual markers)
 labs/          U00..U14 × {understand, build} markdown pairs
 walkthroughs/  interactive step-through scenarios (JSON) → see ../shared/walkthrough/README.md
+               runtime repo: varasrinivas/course-walkthrough-runtime (sibling checkout)
 walkthrough/   generated standalone quick-reference page (all scenarios behind tabs)
 docs/          canon.md · curriculum-map.md
 .claude/commands  plan-module / build-module / validate-module / build-lab (kit-inherited; marker-injection — NEVER rewrite course/index.html wholesale)

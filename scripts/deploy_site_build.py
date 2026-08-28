@@ -41,6 +41,20 @@ for f in (KG / "output").glob("*.html"):
     (kg_out / f.name).write_text(t, encoding="utf-8")
 print(f"knowledge-graph: {len(list(kg_out.glob('*.html')))} pages, {total} links rewritten")
 
+# The standalone walkthrough quick-reference sits one level down, matching the
+# spec-driven-development course's courses/<slug>/walkthrough/index.html layout.
+def copy_walkthrough(repo: Path, out: Path, label: str) -> None:
+    src = repo / "walkthrough" / "index.html"
+    if not src.exists():
+        print(f"{label}: no walkthrough page (skipped)")
+        return
+    dst = out / "walkthrough"
+    dst.mkdir(parents=True, exist_ok=True)
+    shutil.copy(src, dst / "index.html")
+    print(f"{label}: walkthrough page ({src.stat().st_size / 1024:.0f} kB)")
+
+copy_walkthrough(KG, kg_out, "knowledge-graph")
+
 # ---- ultimate-context-eng -> courses/ultimate-context-eng/ -----------------
 uce_out = OUT / "courses" / "ultimate-context-eng"
 (uce_out / "assets").mkdir(parents=True)
@@ -61,6 +75,7 @@ for f in (UCE / "course" / "assets").glob("*.png"):
 for f in (UCE / "labs").glob("*.md"):
     shutil.copy(f, uce_out / "labs" / f.name)
 print(f"uce: {len(list((uce_out/'assets').glob('*')))} assets, {len(list((uce_out/'labs').glob('*')))} labs")
+copy_walkthrough(UCE, uce_out, "uce")
 
 # ---- kit index (successor link) -> courses/context-engineering/index.html --
 ce_out = OUT / "courses" / "context-engineering"
@@ -69,6 +84,7 @@ t, n = rewrite((KIT / "course" / "index.html").read_text(encoding="utf-8"),
                [("../../ultimate-context-eng/course/index.html", "../ultimate-context-eng/index.html")])
 (ce_out / "index.html").write_text(t, encoding="utf-8")
 print(f"context-engineering/index.html: {n} links rewritten")
+copy_walkthrough(KIT, ce_out, "context-engineering")
 
 # ---- agent course: index + both M03B variants ------------------------------
 ag_subs = [

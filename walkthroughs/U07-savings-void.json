@@ -1,0 +1,185 @@
+{
+  "id": "uce-savings-void",
+  "badge": "WALKTHROUGH",
+  "color": "#A63A3A",
+  "time": "~5 min",
+  "title": "Savings void",
+  "spec": "U07 · the compression that fails its answer key",
+  "intro": "The cheapest answer on the whole grid for this question is also wrong. Watch a 88% saving get voided by one missing fact, and learn the assertion that catches it.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/teaching-failures.json#Q9-compressed"
+  },
+  "foot": "Do it for real: Compare drawer, Q9, <code>budgeted</code> vs <code>compressed</code>",
+  "steps": [
+    {
+      "title": "Two compressors, same question",
+      "narrative": [
+        "Budgeted and compressed are both COMPRESS-family strategies, and they attack the same layer. They differ in <em>how</em>: budgeted evicts whole records until it fits a cap; compressed rewrites records into a shorter abstract.",
+        "On Q9 — summarize M-2001's authorization history — budgeted lands at 565 tokens and compressed at 208. On tokens alone, compressed wins by a mile."
+      ],
+      "youDo": "Open the Compare drawer, pin <b>Q9</b>, and set the two columns to <code>budgeted</code> and <code>compressed</code>.",
+      "source": "bench/results/replay-fullgrid.json#Q9-budgeted,bench/results/replay-fullgrid.json#Q9-compressed",
+      "state": {
+        "label": "tokens only — the tempting view",
+        "before": {
+          "title": "IF YOU ONLY LOOK AT THE BILL",
+          "view": {
+            "type": "bars",
+            "unit": "tokens",
+            "max": 1700,
+            "items": [
+              { "label": "naive", "value": 1700, "note": "the control" },
+              { "label": "budgeted", "value": 565, "note": "evicts whole records to fit a cap" },
+              { "label": "compressed", "value": 208, "tone": "win", "note": "rewrites records into an abstract — 88% off" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Read the two answers, not the two totals",
+      "narrative": [
+        "Budgeted says: two requests, PA-1001 approved at score 100, PA-1004 in manual review at score 65. Correct.",
+        "Compressed says: two requests, PA-1001 approved, <em>\"her history shows consistent approvals.\"</em> The abstract step summarised away the request that was <b>not</b> approved — and then editorialised in its place."
+      ],
+      "claudeSays": "Nothing went wrong in the model. The compressor handed it a context in which PA-1004's outcome no longer existed, and it answered faithfully from what it was given.",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history…" },
+        { "kind": "tool", "text": "assemble(mode=compressed) → abstract(records) : 1,612 → 120 tokens" },
+        { "kind": "claude", "text": "Member M-2001 (Rosa Delgado) has 2 authorization requests:\nPA-1001 was APPROVED. Her history shows consistent approvals." },
+        { "kind": "gate", "text": "⏸  GRADING against the Q9 answer key" },
+        { "kind": "out-fail", "text": "✕ FAILED — missing required facts: PA-1004, MANUAL_REVIEW" }
+      ],
+      "source": "bench/results/teaching-failures.json#Q9-compressed",
+      "state": {
+        "label": "the two answers",
+        "before": {
+          "title": "BUDGETED — 565 tokens",
+          "view": {
+            "type": "note",
+            "text": "\"Member M-2001 has 2 authorization requests: PA-1001 APPROVED (score 100); PA-1004 MANUAL_REVIEW (score 65).\" — both required facts present."
+          }
+        },
+        "after": {
+          "title": "COMPRESSED — 208 tokens",
+          "view": {
+            "type": "stack",
+            "views": [
+              {
+                "type": "note",
+                "text": "\"Member M-2001 (Rosa Delgado) has 2 authorization requests: PA-1001 was APPROVED. Her history shows consistent approvals.\""
+              },
+              {
+                "type": "rows",
+                "columns": ["required fact", "present?"],
+                "rows": [
+                  { "cells": ["PA-1001 · APPROVED", "yes"], "tone": "win" },
+                  { "cells": ["PA-1004", "<b>missing</b>"], "tone": "bad" },
+                  { "cells": ["MANUAL_REVIEW", "<b>missing</b>"], "tone": "bad" }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The stamp that voids the saving",
+      "narrative": [
+        "The receipt does not congratulate compressed on 208 tokens. It stamps it <b>✕ FAILED — savings void</b> and names the facts that went missing.",
+        "This is the one rule the whole course rests on: <b>a saving that changes the answer is not a saving.</b> It is a defect with a smaller bill. In a prior-authorization system, \"consistent approvals\" about a member with a pending manual review is not a rounding error — it is the wrong clinical picture."
+      ],
+      "source": "bench/results/teaching-failures.json#Q9-compressed",
+      "state": {
+        "label": "token receipt · Q9 · compressed",
+        "before": {
+          "title": "THE CHEAPEST WRONG ANSWER ON THE GRID",
+          "view": {
+            "type": "receipt",
+            "mode": "compressed",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 120 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "inputTotal": 208,
+            "output": 26,
+            "cost": "$0.00101",
+            "cacheRead": "0%",
+            "verdict": "failed",
+            "verdictNote": "missing: PA-1004 · MANUAL_REVIEW"
+          }
+        }
+      }
+    },
+    {
+      "title": "The fidelity assertion",
+      "narrative": [
+        "The fix is not \"compress less\". It is to make compression <b>prove</b> it kept what mattered. Before an abstract is allowed into the context, assert that every identifier and status present in the source survives into the summary.",
+        "Turn the assertion on and compressed stops returning a cheap wrong answer — it returns a slightly more expensive right one, because the assertion forces the outcome fields to be carried verbatim."
+      ],
+      "youDo": "In the U07 lab, break it on purpose: disable the assertion, re-ask Q9, and watch the FAILED stamp come back.",
+      "state": {
+        "label": "compression with a contract",
+        "before": {
+          "title": "BEFORE — abstract with no contract",
+          "view": {
+            "type": "diff",
+            "file": "assembler/compress.py",
+            "lines": [
+              ["p", "def abstract(records):"],
+              ["p", "    text = summarize(records)"],
+              ["m", "    return text            # ships whatever the summariser produced"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — the fidelity assertion",
+          "view": {
+            "type": "diff",
+            "file": "assembler/compress.py",
+            "lines": [
+              ["p", "def abstract(records):"],
+              ["p", "    text = summarize(records)"],
+              ["a", "    required = ids_and_statuses(records)   # PA-1004, MANUAL_REVIEW, …"],
+              ["a", "    missing  = [f for f in required if f not in text]"],
+              ["a", "    if missing:"],
+              ["a", "        return extract_verbatim(records, keep=missing)  # fall back a rung"],
+              ["p", "    return text"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "What to take to the router",
+      "narrative": [
+        "Compression is not disqualified — it is <em>conditional</em>. On questions whose answer is a shape rather than a set of identifiers, abstracting is exactly right. On aggregation questions with named facts in the key, it is the most dangerous strategy on the toggle bar.",
+        "That distinction, made per question class from measured evidence, is what U12's router is built out of. Never route to an arm that fails the key on that class — however good its tokens look."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "state": {
+        "label": "Q9 · tokens with the verdict attached",
+        "before": {
+          "title": "THE ONLY TABLE THAT COUNTS",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "input tokens", "verdict", "eligible for routing?"],
+            "rows": [
+              { "cells": ["compressed", "208", "✕ FAILED", "no — savings void"], "tone": "bad" },
+              { "cells": ["notes", "167", "✓ verified", "yes"], "tone": "win" },
+              { "cells": ["okf", "190", "✓ verified", "yes"], "tone": "win" },
+              { "cells": ["jit", "220", "✓ verified", "yes"] },
+              { "cells": ["budgeted", "565", "✓ verified", "yes"] },
+              { "cells": ["naive", "1,700", "✓ verified", "yes, but why"] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

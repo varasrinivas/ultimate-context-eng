@@ -1,0 +1,139 @@
+{
+  "id": "uce-baseline-receipt",
+  "badge": "WALKTHROUGH",
+  "color": "#2e6b8a",
+  "time": "~4 min",
+  "title": "Record the baseline",
+  "spec": "U02 · read a receipt line by line",
+  "intro": "Before you optimise anything you need a number to beat. Ask Q9 in naive mode and read the receipt one layer at a time — this is the table every later module has to improve on.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json#Q9-naive"
+  },
+  "foot": "Do it for real: start the bench in replay mode, pin Q9, mode <code>naive</code> · <code>SETUP.md</code>",
+  "steps": [
+    {
+      "title": "Pin the question",
+      "narrative": [
+        "Q9 is an <b>aggregation</b> question: <em>\"Summarize member M-2001's authorization history: how many requests and what were the outcomes?\"</em> Answering it correctly requires two specific facts — PA-1001 approved, and PA-1004 in manual review.",
+        "It is the question this course returns to most, because aggregation is where naive context assembly looks most defensible: you feel like you need everything. You do not."
+      ],
+      "youDo": "In the Copilot panel, pick <b>Q9</b> from the standing-questions list and set the mode toggle to <code>naive</code>.",
+      "state": {
+        "label": "the answer key",
+        "before": {
+          "title": "WHAT A CORRECT ANSWER MUST CONTAIN",
+          "view": {
+            "type": "rows",
+            "columns": ["required fact", "why it is required"],
+            "rows": [
+              { "cells": ["PA-1001 · APPROVED", "the first of M-2001's two requests"] },
+              { "cells": ["PA-1004 · MANUAL_REVIEW", "the second — an answer that omits it is wrong, however cheap"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Ask it, and read the bill",
+      "narrative": [
+        "Naive mode does the obvious thing: it puts the whole seeded domain into the prompt and lets the model find the answer. It works. The answer is correct.",
+        "Now look at the receipt rather than the answer. <b>1,700 input tokens</b>, of which <b>1,612 are retrieved context</b> — the domain dump. The system prompt is 65 tokens and your actual question is 23."
+      ],
+      "claudeSays": "The model reads all 1,612 tokens of retrieved records, finds the two rows about M-2001, and reports them. Every other record was paid for and ignored.",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?" },
+        { "kind": "tool", "text": "assemble(mode=naive) → retrieved: all members, all requests, all criteria" },
+        { "kind": "claude", "text": "Member M-2001 has 2 authorization requests: PA-1001 APPROVED\n(score 100); PA-1004 MANUAL_REVIEW (score 65)." },
+        { "kind": "out-pass", "text": "✓ verified — both key facts present" }
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-naive",
+      "state": {
+        "label": "token receipt · Q9 · naive",
+        "before": {
+          "title": "THE BASELINE",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 1700,
+            "output": 26,
+            "cost": "$0.00549",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Where the money is",
+      "narrative": [
+        "Five layers enter every context window, and on this call one of them is 95% of the bill. That is the whole diagnosis: <b>the retrieved layer is the target</b>, and the other four are rounding errors.",
+        "This is why \"write a better prompt\" is the wrong lever here. Your prompt is 23 tokens. Halving it saves you eleven."
+      ],
+      "state": {
+        "label": "layer shares",
+        "before": {
+          "title": "ONE LAYER, NINETY-FIVE PERCENT",
+          "view": {
+            "type": "bars",
+            "unit": "tokens",
+            "max": 1612,
+            "items": [
+              { "label": "Retrieved", "value": 1612, "tone": "bad", "note": "95% of the input — the whole domain, sent to answer one question about one member" },
+              { "label": "System", "value": 65 },
+              { "label": "Your turn", "value": 23 },
+              { "label": "History", "value": 0 },
+              { "label": "Tool results", "value": 0 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The number to beat",
+      "narrative": [
+        "Record it. <b>1,700 input tokens, verified correct, $0.00549.</b> Every strategy in the next twelve modules gets measured against this row, on this question, with the same answer key.",
+        "And note the second half of that sentence, because it is the rule the whole course turns on: a strategy that beats 1,700 tokens but drops PA-1004 has not won anything. In U07 you will watch exactly that happen."
+      ],
+      "youDo": "Repeat for all ten standing questions in <code>naive</code> mode and save the table. That is your U02 lab deliverable.",
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "state": {
+        "label": "baseline row",
+        "before": {
+          "title": "BEFORE — what you know now",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "mode", "input tokens", "verdict"],
+            "rows": [
+              { "cells": ["Q9 · aggregation", "naive", "1,700", "✓ verified"] }
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — what the rest of the course fills in",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "mode", "input tokens", "verdict"],
+            "rows": [
+              { "cells": ["Q9 · aggregation", "naive", "1,700", "✓ verified"] },
+              { "cells": ["Q9 · aggregation", "budgeted", "565", "✓ verified"], "new": true },
+              { "cells": ["Q9 · aggregation", "compressed", "208", "✕ FAILED"], "tone": "bad" },
+              { "cells": ["Q9 · aggregation", "jit", "220", "✓ verified"], "new": true },
+              { "cells": ["Q9 · aggregation", "okf", "190", "✓ verified"], "new": true },
+              { "cells": ["Q9 · aggregation", "notes", "167", "✓ verified"], "new": true }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -30,9 +30,24 @@ app/ui         React+TS+Vite frontend — domain screens + Token Lens + Compare 
 bench/seed     dataset.json (THE contract) · bench/keys · bench/results · bench/fixtures
 course/        index.html — single-file player (kit engine: MODS / TRACK_META / renderVisual markers)
 labs/          U00..U14 × {understand, build} markdown pairs
+walkthroughs/  interactive step-through scenarios (JSON) → see ../shared/walkthrough/README.md
+walkthrough/   generated standalone quick-reference page (all scenarios behind tabs)
 docs/          canon.md · curriculum-map.md
 .claude/commands  plan-module / build-module / validate-module / build-lab (kit-inherited; marker-injection — NEVER rewrite course/index.html wholesale)
 ```
+
+**Walkthroughs.** Four modules (U02, U05, U07, U10) carry an interactive step-through of a measured
+scenario. Content is data in `walkthroughs/*.json`; the runtime is `../shared/walkthrough/`. Add a
+mount with `mount_player.py` (inserts one `content` section before that module's first quiz — the
+player needs no code change, because it renders `content.body` as raw HTML and the runtime re-mounts
+under a MutationObserver). Rebuild both targets after any content change, or they drift:
+```
+python ../shared/walkthrough/build.py --scenarios "walkthroughs/U*.json" --root . --target course/index.html
+python ../shared/walkthrough/build.py --scenarios "walkthroughs/U*.json" --root . --standalone walkthrough/index.html \
+    --title "Ultimate Context Engineering — walkthroughs" --back ../index.html
+```
+Every scenario declares provenance and every number is copied from `bench/results/`. A `measured`
+citation that does not resolve **fails the build** — the correctness law, enforced rather than promised.
 
 ## ContextAssembler modes (backend `mode` param — curriculum 1:1)
 `naive · budgeted · compressed · cached · jit · graph · okf · notes · isolated · routed`

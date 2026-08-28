@@ -1,0 +1,187 @@
+{
+  "id": "uce-three-selectors",
+  "badge": "WALKTHROUGH",
+  "color": "#1F7A4D",
+  "time": "~5 min",
+  "title": "Three selectors, one question",
+  "spec": "U05 · jit vs graph vs okf",
+  "intro": "Selection is a family, not a technique. The same question, answered three different ways, all correct — and the receipts show three different shapes.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json#Q9-jit,bench/results/replay-fullgrid.json#Q9-graph,bench/results/replay-fullgrid.json#Q9-okf"
+  },
+  "foot": "Do it for real: pin Q9 and walk the toggle across <code>jit</code> → <code>graph</code> → <code>okf</code>",
+  "steps": [
+    {
+      "title": "The control: send everything",
+      "narrative": [
+        "Start where U02 left off. Naive mode answers Q9 correctly for <b>1,700 tokens</b>, 1,612 of them a dump of the entire seeded domain.",
+        "Three selectors are about to answer the same question correctly for under 300. They do it in three genuinely different ways, and knowing which one to reach for is the skill."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-naive",
+      "state": {
+        "label": "the control",
+        "before": {
+          "title": "NAIVE — everything, just in case",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "inputTotal": 1700,
+            "output": 26,
+            "cost": "$0.00549",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Just-in-time — identifiers now, records on demand",
+      "narrative": [
+        "JIT sends the model a thin index: which members exist, which requests belong to whom, and a tool that fetches a full record when asked. The bulky records stay out of the prompt until something needs them.",
+        "Watch the receipt's <em>shape</em>, not just its total. Retrieved collapses from 1,612 to <b>78</b>, and a new layer appears: <b>54 tokens of tool results</b>. That trade — retrieved down, tool up — is the signature of just-in-time."
+      ],
+      "youDo": "Set the mode toggle to <code>jit</code> and ask Q9 again.",
+      "claudeSays": "The model reads the index, sees M-2001 owns PA-1001 and PA-1004, and calls the fetch tool twice. It never sees a record it did not ask for.",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history…" },
+        { "kind": "tool", "text": "fetch_request(\"PA-1001\") → APPROVED, score 100" },
+        { "kind": "tool", "text": "fetch_request(\"PA-1004\") → MANUAL_REVIEW, score 65" },
+        { "kind": "claude", "text": "Member M-2001 has 2 authorization requests: PA-1001 APPROVED\n(score 100); PA-1004 MANUAL_REVIEW (score 65)." },
+        { "kind": "out-pass", "text": "✓ verified · 220 input tokens" }
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-jit",
+      "state": {
+        "label": "token receipt · Q9 · jit",
+        "before": {
+          "title": "BEFORE — naive",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "inputTotal": 1700,
+            "verdict": "verified"
+          }
+        },
+        "after": {
+          "title": "AFTER — jit: retrieved down, tool up",
+          "view": {
+            "type": "receipt",
+            "mode": "jit",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 78 },
+              { "label": "Tool results", "tokens": 54 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Tool results"],
+            "inputTotal": 220,
+            "output": 26,
+            "cost": "$0.00105",
+            "verdict": "verified",
+            "verdictNote": "87% less than naive, same answer"
+          }
+        }
+      }
+    },
+    {
+      "title": "Graph — the subgraph instead of the dump",
+      "narrative": [
+        "The graph selector walks relationships. It knows M-2001 is connected to two authorization nodes, pulls that neighbourhood, and sends only it. No index round-trip and no tool call — the selection happens before the model is ever invoked.",
+        "It costs <b>286 tokens</b>, a little more than JIT. It earns that on relational questions where the answer depends on <em>how</em> records connect rather than what they contain."
+      ],
+      "youDo": "Switch to <code>graph</code>. Compare the tool layer with the JIT receipt you just read.",
+      "source": "bench/results/replay-fullgrid.json#Q9-graph",
+      "state": {
+        "label": "token receipt · Q9 · graph",
+        "before": {
+          "title": "GRAPH — deterministic selection, no round trip",
+          "view": {
+            "type": "receipt",
+            "mode": "graph",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 198 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 286,
+            "output": 26,
+            "cost": "$0.00125",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "OKF — one canonical file, zero search",
+      "narrative": [
+        "The canonical selector does no searching at all. Somebody already wrote the concept file for member authorization history, and it is the right size by construction. The assembler loads it and stops.",
+        "<b>190 tokens</b> — the cheapest of the three, and the only one with no moving parts at query time. The cost moved from runtime to authoring time, which is a trade you make deliberately, not a saving you get for free."
+      ],
+      "youDo": "Switch to <code>okf</code>, then open the concept file the mode loaded and read it. That file is the whole trick.",
+      "source": "bench/results/replay-fullgrid.json#Q9-okf",
+      "state": {
+        "label": "token receipt · Q9 · okf",
+        "before": {
+          "title": "OKF — curated, not searched",
+          "view": {
+            "type": "receipt",
+            "mode": "okf",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 102 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "inputTotal": 190,
+            "output": 26,
+            "cost": "$0.00096",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Three shapes, one verdict",
+      "narrative": [
+        "All three are correct. All three are roughly an order of magnitude cheaper than sending everything. They are not interchangeable: JIT pays a round trip and wins when you cannot predict what is needed; graph wins on relational questions; OKF wins when someone has already done the curation.",
+        "The lesson to carry into U06 is that <em>selection is a family</em>. \"Use retrieval\" is not a strategy. Choosing which selector fits the question class is."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "state": {
+        "label": "Q9 · all selectors",
+        "before": {
+          "title": "MEASURED — same question, same answer key",
+          "view": {
+            "type": "bars",
+            "unit": "tokens",
+            "max": 1700,
+            "items": [
+              { "label": "naive", "value": 1700, "tone": "bad", "note": "the control — everything, just in case" },
+              { "label": "graph", "value": 286, "note": "subgraph · relational questions" },
+              { "label": "jit", "value": 220, "note": "index + 2 tool calls · unpredictable needs" },
+              { "label": "okf", "value": 190, "tone": "win", "note": "one canonical file · curation done up front" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

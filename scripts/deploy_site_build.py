@@ -51,7 +51,18 @@ def copy_walkthrough(repo: Path, out: Path, label: str) -> None:
     dst = out / "walkthrough"
     dst.mkdir(parents=True, exist_ok=True)
     shutil.copy(src, dst / "index.html")
-    print(f"{label}: walkthrough page ({src.stat().st_size / 1024:.0f} kB)")
+    # A scenario may embed images with a page-relative path, so whatever
+    # build.py placed beside the page has to ship beside it too.
+    assets = src.parent / "assets"
+    n = 0
+    if assets.is_dir():
+        (dst / "assets").mkdir(exist_ok=True)
+        for f in sorted(assets.iterdir()):
+            if f.is_file():
+                shutil.copy(f, dst / "assets" / f.name)
+                n += 1
+    print(f"{label}: walkthrough page ({src.stat().st_size / 1024:.0f} kB"
+          + (f", {n} assets)" if n else ")"))
 
 copy_walkthrough(KG, kg_out, "knowledge-graph")
 

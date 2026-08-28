@@ -1,0 +1,209 @@
+{
+  "id": "uce-app-tour",
+  "badge": "WALKTHROUGH",
+  "color": "#33506B",
+  "time": "~5 min",
+  "title": "Tour the instrument",
+  "spec": "U00 · MedFlow Copilot, screen by screen",
+  "intro": "Your classroom is an app, not a page. Six stops: the review queue, the Copilot panel, the toggle bar, the token receipt, the Compare drawer, and the stamp that decides whether any of it counted.",
+  "provenance": {
+    "kind": "illustrative"
+  },
+  "foot": "Do it for real: <code>SETUP.md</code> — two terminals, no API key — then <a href=\"http://localhost:5173\">localhost:5173</a>",
+  "steps": [
+    {
+      "title": "Stop 1 — the review queue",
+      "narrative": [
+        "MedFlow Copilot is a prior-authorization portal. The left rail is the clinician's app: <b>Review queue</b>, <b>Requests</b>, <b>Members</b>, <b>Submit request</b>. The queue itself holds three requests that scored between the review and approval thresholds, so a human has to decide: <b>PA-1002</b> (score 65, missing a neurological deficit), <b>PA-1004</b> (65, failed 12 weeks conservative management), <b>PA-1010</b> (50, two criteria missing).",
+        "Learn these three ids now. They are the cast for fifteen modules — almost every graded question in the course is about one of them, and you will watch strategies get them right, get them expensively right, and occasionally get them wrong."
+      ],
+      "youDo": "Start both terminals from <code>SETUP.md</code>, open <code>localhost:5173</code>, and leave it running beside this player for the whole course.",
+      "state": {
+        "label": "the app at rest",
+        "before": {
+          "title": "WORK QUEUE — three requests awaiting a clinician",
+          "view": {
+            "type": "stack",
+            "views": [
+              { "type": "note", "text": "<img src=\"assets/shot-1-queue.png\" alt=\"MedFlow Copilot: the manual-review queue with PA-1002, PA-1004 and PA-1010, and the Copilot panel on the right\" style=\"width:100%;border-radius:8px\">" },
+              { "type": "note", "text": "Left: the queue. Right: the Copilot panel — <em>every call gets a receipt</em>. That header line is the whole design of the app." }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Stop 2 — the toggle bar is your table of contents",
+      "narrative": [
+        "The Copilot panel has three controls and no settings menu. The <b>toggle bar</b> picks the context strategy — ten of them, <code>naive</code> through <code>routed</code>. The <b>standing questions</b> dropdown picks a preset. The box under it takes free-form questions.",
+        "Two rules that will save you an hour of confusion. The ten toggles map one-to-one onto modules — <code>notes</code> is U03, <code>okf</code> is U05, <code>isolated</code> is U09, <code>routed</code> is U12 — so treat the bar as a syllabus. And only the <b>preset</b> questions are graded: a free-form ask comes back stamped UNGRADED and proves nothing, however good the answer looks."
+      ],
+      "youDo": "Click each toggle once to see the bar highlight move, then open the standing-questions dropdown and read all ten presets.",
+      "state": {
+        "label": "ten toggles, ten modules",
+        "before": {
+          "title": "THE BAR, DECODED",
+          "view": {
+            "type": "rows",
+            "columns": ["toggle", "family", "module"],
+            "rows": [
+              { "cells": ["naive", "— (the control)", "U02"] },
+              { "cells": ["budgeted", "select / compress", "U04 · U07"] },
+              { "cells": ["compressed", "compress", "U07"] },
+              { "cells": ["cached", "position economics", "U06"] },
+              { "cells": ["jit", "select", "U04"] },
+              { "cells": ["graph", "select", "U05"] },
+              { "cells": ["okf", "select", "U05"] },
+              { "cells": ["notes", "write", "U03"] },
+              { "cells": ["isolated", "isolate", "U09"] },
+              { "cells": ["routed", "chooses a family", "U12"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Stop 3 — the receipt, line by line",
+      "narrative": [
+        "Pick <b>Q1</b> — <em>\"Which criteria apply to procedure 72148 and what is the weight of each?\"</em> — leave the mode on <code>naive</code>, and press Ask. Under the answer, the Token Lens prints an itemized bill for that one call.",
+        "Read it as five lines, because each line is a course track. <b>System</b> 65 — the static surface, U06. <b>Retrieved</b> 1,612 — the whole seeded domain, dumped in; selection, U04–U05. <b>Tool results</b> 0 — shaping, U07. <b>History</b> 0 — memory, U03 and U08. <b>User turn</b> 17 — the only part most people call \"the prompt\". They sum to <b>1,694</b>, and that reconciliation always holds: five layers, one total, no unexplained remainder."
+      ],
+      "youDo": "Ask <b>Q1</b> in <code>naive</code>, then add the five layer numbers on the receipt by hand and check they equal the input total.",
+      "claudeSays": "The model read all 1,612 tokens of dumped records, found the three criteria for 72148, and reported them with their weights. Every other record in the dump was paid for and ignored.",
+      "source": "bench/results/replay-fullgrid.json#Q1-naive",
+      "state": {
+        "label": "Q1 · naive",
+        "before": {
+          "title": "THE TOKEN LENS ON SCREEN",
+          "view": {
+            "type": "note",
+            "text": "<img src=\"assets/shot-2-receipt.png\" alt=\"The Copilot panel showing the Q1 answer and a naive-mode token receipt: System 65, Retrieved 1,612, Tool results 0, History 0, User turn 17, input total 1,694, VERIFIED\" style=\"width:100%;border-radius:8px\">"
+          }
+        },
+        "after": {
+          "title": "THE SAME RECEIPT, AS DATA",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q1 · criteria and weights for procedure 72148",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 17 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 1694,
+            "output": 50,
+            "cost": "$0.005832",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Stop 4 — one toggle, same verdict",
+      "narrative": [
+        "Now flip the bar to <code>okf</code> and press Ask again. Same question, same answer text, same green stamp — and the retrieved layer falls from 1,612 to <b>280</b>, because instead of a domain dump the assembler shipped two canonical concept files plus the procedure catalog.",
+        "Watch the <b>session strip</b> along the bottom while you do it. It read <code>1 call · 1,694 in-tok · $0.0058</code>; after the second ask it reads <code>2 calls · 2,056 in-tok · $0.0077</code>. That strip accumulates for as long as the app stays open, and several labs later in the course are built on reading it."
+      ],
+      "youDo": "With Q1 still pinned, click <code>okf</code> and Ask. Compare the retrieved line, then glance at the session strip at the bottom of the panel.",
+      "source": "bench/results/replay-fullgrid.json#Q1-okf",
+      "state": {
+        "label": "Q1 · okf",
+        "before": {
+          "title": "SAME QUESTION, ONE TOGGLE LATER",
+          "view": {
+            "type": "note",
+            "text": "<img src=\"assets/shot-3-okf.png\" alt=\"okf-mode receipt for Q1: System 65, Retrieved 280, User turn 17, input total 362, VERIFIED, and the session strip reading 2 calls, 2,056 in-tok, $0.0077\" style=\"width:100%;border-radius:8px\">"
+          }
+        },
+        "after": {
+          "title": "THE RETRIEVED LINE, BEFORE AND AFTER",
+          "view": {
+            "type": "bars",
+            "unit": "tokens (retrieved layer)",
+            "max": 1612,
+            "items": [
+              { "label": "naive", "value": 1612, "tone": "bad", "note": "the entire seeded domain as pretty-printed JSON" },
+              { "label": "okf", "value": 280, "tone": "win", "note": "thresholds + eligibility concepts + the procedure catalog — same ✓ verdict" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Stop 5 — the Compare drawer",
+      "narrative": [
+        "Clicking <b>Compare strategies</b> puts two receipts side by side for the same question and does the arithmetic for you: <em>okf used 79% fewer input tokens than naive · cost Δ $0.0040 saved</em>. Both stamped VERIFIED.",
+        "This drawer is where most of the course's evidence gets produced — U04 compares <code>naive</code> against <code>jit</code> here, U07 compares <code>budgeted</code> against <code>compressed</code>. Get used to reading the two receipts <em>and</em> the two stamps, because the drawer will happily show you a cheaper column that failed its answer key."
+      ],
+      "youDo": "Click <b>Compare strategies</b>, set the left column to <code>naive</code> and the right to <code>okf</code>, and read the summary bar at the bottom of the drawer.",
+      "source": "bench/results/replay-fullgrid.json#Q1-naive,bench/results/replay-fullgrid.json#Q1-okf",
+      "state": {
+        "label": "Compare · Q1 · naive vs okf",
+        "before": {
+          "title": "TWO RECEIPTS, ONE QUESTION",
+          "view": {
+            "type": "stack",
+            "views": [
+              { "type": "note", "text": "<img src=\"assets/shot-4-compare.png\" alt=\"The Compare strategies drawer showing naive at 1,694 input tokens beside okf at 362, both VERIFIED, with a summary line reading okf used 79% fewer input tokens than naive\" style=\"width:100%;border-radius:8px\">" },
+              {
+                "type": "rows",
+                "columns": ["column", "input tokens", "cost", "verdict"],
+                "rows": [
+                  { "cells": ["naive", "1,694", "$0.005832", "✓ verified"] },
+                  { "cells": ["okf", "362", "$0.001836", "✓ verified"], "tone": "win" },
+                  { "cells": ["<b>delta</b>", "<b>−79%</b>", "<b>$0.0040 saved</b>", "unchanged"] }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Stop 6 — the stamp is the point",
+      "narrative": [
+        "One more screen before you start: <b>Members</b>. Member M-2003's date of birth carries a REDACTED badge, because the seed data minimizes that field on purpose. Now ask <b>Q7</b> — <em>\"What is member M-2003's date of birth?\"</em> — in <code>naive</code>.",
+        "Naive dumps the whole domain, the model finds something that looks like a birth date, and answers <em>\"born on 1984-06-17 according to the member record\"</em>. The grader stamps <b>✕ FAILED</b>: the key required a refusal and forbade a date pattern. The control arm — the one that spends the most and hides nothing — is the arm that fabricates. Nine of its ten answers are correct; this is the tenth.",
+        "That is the law the app exists to enforce, and the only thing you need to carry into U01: <b>a token saving that fails its answer key is not a saving</b> — and a token <em>expense</em> that fails it is just a more expensive defect."
+      ],
+      "youDo": "Open <b>Members</b>, find the REDACTED badge on M-2003, then ask <b>Q7</b> in <code>naive</code> and read the stamp.",
+      "source": "bench/results/replay-fullgrid.json#Q7-naive",
+      "state": {
+        "label": "Q7 · naive",
+        "before": {
+          "title": "THE FIELD, ON SCREEN",
+          "view": {
+            "type": "note",
+            "text": "<img src=\"assets/shot-5-members.png\" alt=\"The Members list with a REDACTED badge on the date-of-birth field\" style=\"width:100%;border-radius:8px\">"
+          }
+        },
+        "after": {
+          "title": "THE CONTROL ARM FAILS ITS OWN KEY",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q7 · M-2003's date of birth",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 9 }
+            ],
+            "inputTotal": 1686,
+            "output": 28,
+            "cost": "$0.005478",
+            "cacheRead": "0%",
+            "verdict": "failed",
+            "verdictNote": "answered with a date · missing: insufficient evidence, redacted — U10 takes this apart"
+          }
+        }
+      }
+    }
+  ]
+}

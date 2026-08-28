@@ -1,0 +1,236 @@
+{
+  "id": "uce-retrieval",
+  "badge": "WALKTHROUGH",
+  "color": "#4A6741",
+  "time": "~6 min",
+  "title": "The wrong tool, correctly applied",
+  "spec": "U04 · retrieve wide, ship narrow — and the question class where retrieval is the mistake",
+  "intro": "Half of select is discipline: search the stacks, put three books on the desk. The other half is knowing when not to search at all. The grid has a clean case — a retrieval strategy that answers two questions perfectly for five times the price of just looking the rule up.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json"
+  },
+  "foot": "Do it for real: Compare drawer on <b>Q1</b> (<code>naive</code> vs <code>jit</code>), then on <b>Q4</b> (<code>graph</code> vs <code>okf</code>)",
+  "steps": [
+    {
+      "title": "Wide belongs in the retriever, never in the window",
+      "narrative": [
+        "Open the Compare drawer on <b>Q1</b> — <em>\"Which criteria apply to procedure 72148 and what is the weight of each?\"</em> — with <code>naive</code> on the left and <code>jit</code> on the right.",
+        "Naive is the card catalog wheeled to your desk: <b>1,694 tokens</b>, of which 1,612 are every record in the domain, serialized as JSON, so the model can go find the three rows about 72148. Jit is <b>143</b>, and its receipt splits in two: a 54-token identifier index under tool results, and 7 tokens of retrieved records — because this question names a <em>procedure</em>, not a request, so almost nothing needed injecting.",
+        "Both answers are identical and both are ✓ verified. The difference is entirely in what got onto the desk."
+      ],
+      "youDo": "Compare drawer, pin <b>Q1</b>, left column <code>naive</code>, right column <code>jit</code>. Read the retrieved line on each.",
+      "source": "bench/results/replay-fullgrid.json#Q1-naive,bench/results/replay-fullgrid.json#Q1-jit",
+      "state": {
+        "label": "Q1 · naive vs jit",
+        "before": {
+          "title": "NAIVE — the whole catalog",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q1 · criteria and weights for 72148",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 17 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 1694,
+            "output": 50,
+            "cost": "$0.005832",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        },
+        "after": {
+          "title": "JIT — an index, then the shortlist",
+          "view": {
+            "type": "receipt",
+            "mode": "jit",
+            "question": "Q1 · criteria and weights for 72148",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 7 },
+              { "label": "Tool results", "tokens": 54 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 17 }
+            ],
+            "highlight": ["Retrieved", "Tool results"],
+            "inputTotal": 143,
+            "output": 50,
+            "cost": "$0.001179",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Two postures: cap what ships, or fetch on demand",
+      "narrative": [
+        "Select shows up on the toggle bar in two different postures. <code>budgeted</code> assembles everything, then <b>evicts whole records</b> until the retrieved layer fits a cap — on Q1 that lands at 477 retrieved tokens, 559 total. Nothing is half-shipped: a record is either intact or gone, which is what keeps the surviving facts quotable.",
+        "<code>jit</code> ships an <b>index of identifiers</b> and injects only the records the question names. On Q9 you can read the two halves separately: the identifier index is the 54-token tool-results line, and the two request records it pulled in are the 78-token retrieved line. Total 220 against naive's 1,700.",
+        "Both are the same discipline — candidates are cheap, context slots are expensive. Budgeted decides at assembly time; jit defers the decision until the question has named something."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q1-budgeted,bench/results/replay-fullgrid.json#Q9-jit",
+      "state": {
+        "label": "the two postures, priced",
+        "before": {
+          "title": "SAME FAMILY, DIFFERENT MOMENT OF DECISION",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "question", "retrieved", "index / tool", "input total", "how it decides"],
+            "rows": [
+              { "cells": ["naive", "Q1", "1,612", "0", "1,694", "it does not decide"], "tone": "bad" },
+              { "cells": ["budgeted", "Q1", "477", "0", "559", "evict whole records until it fits a cap"] },
+              { "cells": ["jit", "Q1", "7", "54", "143", "index only, inject what the question names"], "tone": "win" },
+              { "cells": ["jit", "Q9", "78", "54", "220", "the two M-2001 records, fetched on demand"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The serialization tax",
+      "narrative": [
+        "Before you tune <em>which</em> records ship, look at <em>how</em> they ship. Naive's retrieved layer is the seeded domain as pretty-printed JSON: braces, repeated field names, indentation, quoted keys on every row. Budgeted renders the same records as one flat line each and adds a policy line.",
+        "That is a formatting decision, not a retrieval decision, and it is worth a large multiple. Field names and punctuation can outweigh the facts they wrap — you can pay two tokens of scaffolding for every token of content and never notice, because the JSON looks tidy in a log.",
+        "The rule is dull and it works: ship records as the narrowest line that still carries the identifier and the fields the question needs. Keep the id verbatim; drop everything the answer key does not ask for."
+      ],
+      "youDo": "In the U04 lab, dump both retrieved layers to a file and diff them. Count how many of naive's tokens are punctuation and repeated keys.",
+      "source": "bench/results/replay-fullgrid.json#Q1-naive,bench/results/replay-fullgrid.json#Q1-budgeted",
+      "state": {
+        "label": "same facts, two serializations",
+        "before": {
+          "title": "BEFORE — pretty-printed JSON",
+          "view": {
+            "type": "diff",
+            "file": "retrieved layer (naive)",
+            "lines": [
+              ["p", "FULL DOMAIN DATA (JSON):"],
+              ["m", "  {"],
+              ["m", "    \"id\": \"PA-1004\","],
+              ["m", "    \"decision\": \"MANUAL_REVIEW\","],
+              ["m", "    \"score\": 65,"],
+              ["m", "    \"missing\": [\"Failed 12 weeks conservative management\"]"],
+              ["m", "  },   … × every record in the domain"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — one line per record",
+          "view": {
+            "type": "diff",
+            "file": "retrieved layer (budgeted)",
+            "lines": [
+              ["p", "DOMAIN DATA (budgeted, whole-record eviction, newest ids first):"],
+              ["a", "PA-1004 | MANUAL_REVIEW | 65 | missing: Failed 12 weeks conservative management"],
+              ["p", "POLICY: score >= 80 APPROVED; >= 50 MANUAL_REVIEW; else DENIED"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Where retrieval is the wrong tool",
+      "narrative": [
+        "Now run a question whose answer is not hiding anywhere. <b>Q4</b>: <em>\"What is the eligibility rule, and which plan tier covers surgical procedures?\"</em> The answer is two sentences of stated policy — ACTIVE plan status, and only PREMIUM covers surgical.",
+        "Ask it in <code>graph</code>, the relationship-walking retriever, and it costs <b>1,054 input tokens</b>. Ask it in <code>okf</code>, which loads a canonical concept file, and it costs <b>186</b>. Same answer, word for word. Same ✓ verified stamp.",
+        "Q3 — the score thresholds — tells the same story a little more quietly: <code>graph</code> 840, <code>okf</code> 186. Nothing failed here. Graph is <em>correct</em> on both. It is correct at five and a half times the price, which is its own kind of bug."
+      ],
+      "youDo": "Compare drawer, pin <b>Q4</b>, left column <code>graph</code>, right column <code>okf</code>. Read both answers before you read either receipt.",
+      "claudeSays": "Both contexts contained the eligibility rule. One arrived with 970 tokens of graph edges wrapped around it; the other arrived as the rule.",
+      "source": "bench/results/replay-fullgrid.json#Q4-graph,bench/results/replay-fullgrid.json#Q4-okf,bench/results/replay-fullgrid.json#Q3-graph,bench/results/replay-fullgrid.json#Q3-okf",
+      "terminal": [
+        { "kind": "prompt", "text": "What is the eligibility rule, and which plan tier covers surgical procedures?" },
+        { "kind": "tool", "text": "assemble(mode=graph) → subgraphFor(q) : 970 retrieved tokens of [EXTRACTED] edges" },
+        { "kind": "claude", "text": "Eligibility: plan status must be ACTIVE and the procedure must be covered by the\nmember's plan tier (STANDARD covers diagnostics; PREMIUM covers diagnostics and surgical)." },
+        { "kind": "out-pass", "text": "✓ verified — 1,054 input tokens · $0.004152" },
+        { "kind": "prompt", "text": "[same question, toggle → okf]" },
+        { "kind": "tool", "text": "assemble(mode=okf) → canonical concepts: Determination Thresholds, Eligibility : 102 tokens" },
+        { "kind": "out-pass", "text": "✓ verified — 186 input tokens · $0.001548 · identical answer text" }
+      ],
+      "state": {
+        "label": "canonical questions · graph vs okf",
+        "before": {
+          "title": "TWO CORRECT ANSWERS, FIVE TIMES THE BILL",
+          "view": {
+            "type": "bars",
+            "unit": "input tokens",
+            "max": 1054,
+            "items": [
+              { "label": "Q4 · graph", "value": 1054, "tone": "bad", "note": "970 tokens of relationship edges, to state a rule" },
+              { "label": "Q4 · okf", "value": 186, "tone": "win", "note": "the rule, as a canonical concept file — same answer, same ✓" },
+              { "label": "Q3 · graph", "value": 840, "tone": "bad", "note": "756 tokens of edges for a threshold" },
+              { "label": "Q3 · okf", "value": 186, "tone": "win", "note": "same answer, same ✓" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Why the graph inflated",
+      "narrative": [
+        "This is not a mysterious retriever failure — it is a relevance test with an escape hatch. The graph assembler scans the question for entity mentions (a <code>PA-</code> id, an <code>M-</code> id, a procedure code) and for decision filters (\"manual review\", \"denied\", \"eligib\"), then renders the one-hop subgraph around whatever it found.",
+        "Q3 mentions both \"manual review\" and \"denial\", so every request with either decision gets rendered: 756 tokens of edges. Q4 mentions <b>no entity at all</b> — no request, no member, no procedure code — and the fallback branch treats <em>everything</em> as relevant. You get the whole graph, 970 tokens, because the question was too abstract to narrow on.",
+        "Read that as a general law about retrieval, not a quirk of this app: <b>a retriever with no handle to grab widens.</b> Canonical questions offer no handle by construction, which is exactly why they should never be routed to a retriever."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q2-graph,bench/results/replay-fullgrid.json#Q3-graph,bench/results/replay-fullgrid.json#Q4-graph",
+      "state": {
+        "label": "graph's retrieved layer, by question",
+        "before": {
+          "title": "THE NARROWER THE HANDLE, THE SMALLER THE SUBGRAPH",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "what the retriever could grab", "retrieved", "input total"],
+            "rows": [
+              { "cells": ["Q2 · which requests are in MANUAL_REVIEW", "a decision filter — three requests", "352", "437"], "tone": "win" },
+              { "cells": ["Q1 · criteria for procedure 72148", "a procedure code", "368", "450"] },
+              { "cells": ["Q3 · what are the score thresholds", "\"manual review\" <em>and</em> \"denial\" — two filters, both wide", "756", "840"], "tone": "bad" },
+              { "cells": ["Q4 · what is the eligibility rule", "<b>nothing</b> — fallback renders every node", "970", "1,054"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Match the strategy to the question class",
+      "narrative": [
+        "The takeaway is not \"graph is bad\" — on Q2 it is the tidiest retriever on the board. It is that <b>retrieval strategy is a function of question class</b>, and you can only know the mapping by grading it.",
+        "Fuzzy questions — which records look like this, what relates to what — deserve a retriever. Settled questions — what is the threshold, what is the rule, what does the policy say — deserve a lookup, because the fact was never lost and searching for it just buys you neighbours you did not ask for.",
+        "Before you reach for retrieval at all, ask one question: is this fact <em>fuzzy enough to deserve a search</em>, or <em>settled enough to just state</em>? Get that wrong and you pay 1,054 tokens for a two-line rule, and the receipt will congratulate you with a green stamp while you do it. U12 turns this table into a router."
+      ],
+      "youDo": "Run the full grid and build the class-to-strategy table yourself: <code>python bench/run_campaign.py --modes graph,okf,jit,budgeted</code>. Then argue with your own table.",
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "class → strategy",
+        "before": {
+          "title": "BEFORE — one retriever for everything",
+          "view": {
+            "type": "rows",
+            "columns": ["question class", "strategy", "input tokens"],
+            "rows": [
+              { "cells": ["structural (Q1)", "graph", "450"] },
+              { "cells": ["canonical (Q3)", "graph", "840"], "tone": "bad" },
+              { "cells": ["canonical (Q4)", "graph", "1,054"], "tone": "bad" }
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — the strategy follows the class",
+          "view": {
+            "type": "rows",
+            "columns": ["question class", "strategy", "input tokens", "why"],
+            "rows": [
+              { "cells": ["structural (Q1)", "jit", "143", "the question names an entity — fetch it"], "tone": "win" },
+              { "cells": ["canonical (Q3)", "okf", "186", "the rule is stated; look it up, do not search for it"], "tone": "win" },
+              { "cells": ["canonical (Q4)", "okf", "186", "same — and 868 tokens cheaper than walking the graph"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

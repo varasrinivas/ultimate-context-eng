@@ -1,0 +1,207 @@
+{
+  "id": "uce-stale-instrument",
+  "badge": "WALKTHROUGH",
+  "color": "#2D7D8A",
+  "time": "~5 min",
+  "title": "The stale instrument",
+  "spec": "U11 · rot underneath the window, and the gate that catches it",
+  "intro": "Change one criterion weight in the seed while the app is running. Nothing errors, every stamp stays green, and every number you measure for the next hour is wrong. Then watch the gate name the damage in one line.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/seed/dataset.json"
+  },
+  "foot": "Do it for real: drill on a <b>copy</b> of <code>bench/seed/dataset.json</code>, never on the real one — <code>python bench/keys/generate_keys.py</code>",
+  "steps": [
+    {
+      "title": "One file, and everything downstream of it",
+      "narrative": [
+        "<code>bench/seed/dataset.json</code> is the walk-in cooler of this repo. Its own <code>_contract</code> field says so: <em>\"Single source of truth for MedFlow Copilot. The backend loads this into H2 at boot; bench/keys/generate_keys.py derives answer keys from it; module tables cite it.\"</em>",
+        "Count the derived artifacts. The H2 database the copilot queries. The answer keys the grader uses. The replay fixtures. The UI's standing-question mirrors. Every measured table in this course. None of them is \"valid until someone edits it\" — each is valid only until the seed changes."
+      ],
+      "youDo": "Open <code>bench/seed/dataset.json</code> and find criterion <code>C-72148-2</code> under procedure 72148.",
+      "source": "bench/seed/dataset.json",
+      "state": {
+        "label": "the source of truth",
+        "before": {
+          "title": "MEASURED — one criterion, many dependants",
+          "view": {
+            "type": "json",
+            "data": {
+              "code": "72148",
+              "name": "MRI Lumbar Spine",
+              "tier": "diagnostics",
+              "criteria": [
+                { "id": "C-72148-1", "name": "Conservative therapy >= 6 weeks documented", "weight": 40 },
+                { "id": "C-72148-2", "name": "Neurological deficit present", "weight": 35 },
+                { "id": "C-72148-3", "name": "No MRI of same region in past 12 months", "weight": 25 }
+              ]
+            },
+            "highlight": ["criteria"]
+          }
+        }
+      }
+    },
+    {
+      "title": "Edit the seed. The app doesn't notice.",
+      "narrative": [
+        "Change <code>C-72148-2</code>'s weight from 35 to 30 and save. This is a legitimate policy edit — clinical criteria get reweighted — and it is exactly the kind of change that ships silently.",
+        "Read <code>SeedLoader.java</code> to see why nothing happens: the loader is annotated <code>@PostConstruct</code>. It reads the seed <b>once, at boot</b>, writes it into H2, and keeps the parsed object as \"the in-memory authority for the ContextAssembler, grading, and policy endpoints\". A running backend has no idea the file on disk moved underneath it."
+      ],
+      "claudeSays": "There is no file watcher and no reload endpoint. That is a deliberate design — but it means an edited seed and a running app are two different truths until you restart.",
+      "source": "bench/seed/dataset.json",
+      "state": {
+        "label": "bench/seed/dataset.json",
+        "before": {
+          "title": "BEFORE — the seed the running app loaded at boot",
+          "view": {
+            "type": "diff",
+            "file": "bench/seed/dataset.json",
+            "lines": [
+              ["p", "        {"],
+              ["p", "          \"id\": \"C-72148-2\","],
+              ["p", "          \"name\": \"Neurological deficit present\","],
+              ["p", "          \"weight\": 35"],
+              ["p", "        },"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — the seed on disk, one save later",
+          "view": {
+            "type": "diff",
+            "file": "bench/seed/dataset.json",
+            "lines": [
+              ["p", "        {"],
+              ["p", "          \"id\": \"C-72148-2\","],
+              ["p", "          \"name\": \"Neurological deficit present\","],
+              ["m", "          \"weight\": 35"],
+              ["a", "          \"weight\": 30"],
+              ["p", "        },"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Ask Q1. Everything is green and nothing is true.",
+      "narrative": [
+        "Ask the copilot Q1 — <em>\"Which criteria apply to procedure 72148 and what is the weight of each?\"</em> — and it answers <b>40 / 35 / 25</b>, because that is what H2 holds and the assembler reads. The grader checks it against Q1's key facts, which still list <code>35</code>, and stamps ✓ PASS.",
+        "Two instruments, both green, both reading yesterday's cream. This is the signature of altitude-two rot: <em>nothing crashes</em>. Any campaign you run in this state is measuring a stale instrument, and the receipts will look immaculate."
+      ],
+      "youDo": "Ask Q1 in any mode without restarting the backend, and read the answer against the file you just saved.",
+      "terminal": [
+        { "kind": "prompt", "text": "Which criteria apply to procedure 72148 and what is the weight of each?" },
+        { "kind": "tool", "text": "assemble(mode=okf) → SeedLoader.seed() : in-memory copy, loaded at boot" },
+        { "kind": "claude", "text": "Procedure 72148 (MRI Lumbar Spine) has 3 criteria: Conservative therapy\n>= 6 weeks documented (weight 40); Neurological deficit present (weight 35);\nNo MRI of same region in past 12 months (weight 25)." },
+        { "kind": "out-pass", "text": "✓ verified — key facts present: Conservative therapy, 40, Neurological deficit, 35, No MRI of same region, 25" },
+        { "kind": "gate", "text": "⏸  and the file on disk says 30" }
+      ],
+      "source": "bench/seed/dataset.json",
+      "state": {
+        "label": "two truths, no error",
+        "before": {
+          "title": "MEASURED — where each instrument is reading from",
+          "view": {
+            "type": "rows",
+            "columns": ["reader", "source", "weight for C-72148-2", "state"],
+            "rows": [
+              { "cells": ["<code>dataset.json</code> on disk", "the file you just saved", "30", "current"], "tone": "win" },
+              { "cells": ["running backend (H2 + SeedData)", "boot-time copy", "35", "<b>stale</b>"], "tone": "bad" },
+              { "cells": ["answer keys (<code>key_facts</code>)", "derived, not regenerated", "35", "<b>stale</b>"], "tone": "bad" },
+              { "cells": ["replay fixtures &amp; course tables", "derived, not regenerated", "35", "<b>stale</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The gate names the blast radius",
+      "narrative": [
+        "The defence is mechanical and this repo ships it. <code>bench/keys/generate_keys.py</code> recomputes every determination from the seed's own scoring rule and compares it to the stored expectation. It is not checking that a job ran; it is checking a content-derived fact.",
+        "Run it against the tampered seed and it refuses with exit 1, naming <b>exactly PA-1001</b> — the only request whose determination the reweight actually changed, since PA-1001 is the one that met all three criteria (40+30+25 = 95, not 100). That one-line list <em>is</em> your blast radius: not \"something changed somewhere\", but which derived facts are now invalid."
+      ],
+      "youDo": "Run <code>python bench/keys/generate_keys.py</code> and read the exit code, not just the text.",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/keys/generate_keys.py" },
+        { "kind": "out-fail", "text": "CONTRACT BROKEN:\n  PA-1001: computed (95,APPROVED) != expected (100,APPROVED)" },
+        { "kind": "prompt", "text": "echo $?" },
+        { "kind": "out", "text": "1" }
+      ],
+      "source": "bench/seed/dataset.json",
+      "state": {
+        "label": "detection within a day, in under a second",
+        "before": {
+          "title": "MEASURED — the reweight, traced through the scoring rule",
+          "view": {
+            "type": "rows",
+            "columns": ["request", "criteria met", "score before", "score after", "gate"],
+            "rows": [
+              { "cells": ["PA-1001", "C-1, C-2, C-3", "100 → APPROVED", "<b>95</b> → APPROVED", "✕ CONTRACT BROKEN"], "tone": "bad" },
+              { "cells": ["PA-1002", "C-1, C-3", "65 → MANUAL_REVIEW", "65 → MANUAL_REVIEW", "unaffected"] },
+              { "cells": ["PA-1003", "C-3", "25 → DENIED", "25 → DENIED", "unaffected"] },
+              { "cells": ["PA-1009", "eligibility: LAPSED", "0 → DENIED", "0 → DENIED", "unaffected"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Put the gate in front of the copilot",
+      "narrative": [
+        "Detection you have to remember to run is not a control. The U11 lab wires the same check ahead of the app: compare the seed's content hash and mtime against what the running backend loaded, and refuse to serve the copilot while they disagree.",
+        "The banner has to be <em>actionable</em>, which means it names the file, the drift, and the exact command that resolves it. A gate that says \"data may be stale\" trains people to click through it; a gate that says \"restart the backend, then rerun generate_keys.py\" gets obeyed."
+      ],
+      "youDo": "Add the freshness check to the copilot's request path in the U11 lab, then edit the seed again and confirm it blocks.",
+      "terminal": [
+        { "kind": "prompt", "text": "Which criteria apply to procedure 72148 and what is the weight of each?" },
+        { "kind": "gate", "text": "⏸  FRESHNESS GATE — seed changed since boot" },
+        { "kind": "out-fail", "text": "✕ blocked: bench/seed/dataset.json modified after SeedLoader.load()\n         loaded sha256 4f2c…a119 · on-disk sha256 0b7e…33d5\n         fix: restart the backend, then `python bench/keys/generate_keys.py`" }
+      ],
+      "state": {
+        "label": "the banner the copilot shows",
+        "before": {
+          "title": "AN ACTIONABLE REFUSAL, NOT A WARNING",
+          "view": {
+            "type": "note",
+            "text": "<b>Answers disabled — the instrument is stale.</b> The seed this backend loaded at boot no longer matches <code>bench/seed/dataset.json</code>. Every answer, receipt and verdict produced from here would grade today's data against yesterday's truth. Restart the backend, rerun <code>generate_keys.py</code>, and regenerate fixtures before measuring anything."
+          }
+        }
+      }
+    },
+    {
+      "title": "Restart, restore, and watch agreement come back",
+      "narrative": [
+        "Restart the backend and the app finally reads what you wrote: Q1 now answers <b>weight 30</b>. And now the grader fails it — Q1's key facts still demand <code>35</code>. That FAIL is not a regression; it is the second derived artifact finally admitting it was stale too. The restock protocol is: regenerate the keys, regenerate the fixtures, re-measure the tables, in that order.",
+        "Restore the original weight (this was a drill — you drilled on a copy) and the gate returns to <code>contract consistent (10 determinations verified); 10 keys -&gt; keys.json</code>, with both instruments back in agreement.",
+        "The law underneath the whole exercise: <b>a derived fact inherits the shortest shelf life of what it depends on.</b> If you cannot say, mechanically, how you would detect staleness within 24 hours, you do not have a system — you have a demo that has not failed yet."
+      ],
+      "terminal": [
+        { "kind": "prompt", "text": "./mvnw spring-boot:run   # restart — SeedLoader re-reads the seed" },
+        { "kind": "out", "text": "SeedLoader: loaded bench/seed/dataset.json (6 members, 10 requests, 3 procedures)" },
+        { "kind": "prompt", "text": "Which criteria apply to procedure 72148 and what is the weight of each?" },
+        { "kind": "claude", "text": "…Neurological deficit present (weight 30)…" },
+        { "kind": "out-fail", "text": "✕ FAILED — missing required fact: 35   (the answer key is stale, not the app)" },
+        { "kind": "prompt", "text": "git checkout bench/seed/dataset.json && python bench/keys/generate_keys.py" },
+        { "kind": "out-pass", "text": "contract consistent (10 determinations verified); 10 keys -> keys.json" }
+      ],
+      "source": "bench/seed/dataset.json",
+      "state": {
+        "label": "the restock protocol",
+        "before": {
+          "title": "EVERY DERIVED ARTIFACT, AND WHAT REFRESHES IT",
+          "view": {
+            "type": "rows",
+            "columns": ["derived artifact", "derived from", "refresh action"],
+            "rows": [
+              { "cells": ["H2 database + in-memory <code>SeedData</code>", "dataset.json at boot", "restart the backend"] },
+              { "cells": ["<code>bench/keys/keys.json</code>", "standing_questions + scoring rule", "<code>python bench/keys/generate_keys.py</code>"] },
+              { "cells": ["replay fixtures", "seed records", "re-record, then re-grade"] },
+              { "cells": ["UI standing-question mirrors", "seed, hand-copied", "regenerate — never hand-edit a derived file"] },
+              { "cells": ["every measured table in this course", "the graded grid", "re-run the campaign, relabel the source"] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

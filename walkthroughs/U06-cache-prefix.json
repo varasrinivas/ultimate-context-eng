@@ -1,0 +1,268 @@
+{
+  "id": "uce-cache-prefix",
+  "badge": "WALKTHROUGH",
+  "color": "#4B5FA8",
+  "time": "~5 min",
+  "title": "One changed byte",
+  "spec": "U06 · the static surface, the cached prefix, and what invalidates it",
+  "intro": "Ask Q3 in cached mode twice, then flip any toggle and ask a third time. The cache-read badge climbs, then drops to zero — and you have just watched one changed byte at the front of the prompt throw away everything prepped behind it.",
+  "provenance": {
+    "kind": "illustrative"
+  },
+  "foot": "Do it for real: preset <b>Q3</b>, mode <code>cached</code>, ask twice — then change one toggle and ask again. Live mode (an API key) is what moves the badge.",
+  "steps": [
+    {
+      "title": "The part of context you design once",
+      "narrative": [
+        "Ask <b>Q3</b> — <em>\"What score thresholds route a request to approval, manual review, and denial?\"</em> — in <code>cached</code>. The receipt reads <b>732 input tokens</b>: system 65, retrieved 648, your turn 19. Verified.",
+        "Those 648 tokens are not one thing. The assembler builds them in two blocks and in a deliberate order: first <b>POLICY (static)</b> and <b>PROCEDURE CATALOG (static)</b> — content that is identical on every single call you will ever make — then <b>CURRENT REQUESTS</b>, which changes whenever the queue does.",
+        "That split is the whole subject of this module. The system prompt, the tool schemas, the canonical examples, the policy, the catalog: you design them once and then pay for them on every call for the rest of the product's life. That is rent, and ordering decides how much of it you can stop paying."
+      ],
+      "youDo": "Pin <b>Q3</b>, set the mode to <code>cached</code>, and ask. Note the retrieved line: 648.",
+      "source": "bench/results/replay-fullgrid.json#Q3-cached",
+      "state": {
+        "label": "token receipt · Q3 · cached",
+        "before": {
+          "title": "ONE CALL, TWO KINDS OF CONTENT",
+          "view": {
+            "type": "stack",
+            "views": [
+              {
+                "type": "receipt",
+                "mode": "cached",
+                "question": "Q3 · score thresholds",
+                "layers": [
+                  { "label": "System", "tokens": 65 },
+                  { "label": "Retrieved", "tokens": 648 },
+                  { "label": "Tool results", "tokens": 0 },
+                  { "label": "History", "tokens": 0 },
+                  { "label": "Your turn", "tokens": 19 }
+                ],
+                "highlight": ["System", "Retrieved"],
+                "inputTotal": 732,
+                "output": 30,
+                "cost": "$0.002938",
+                "cacheRead": "0%",
+                "verdict": "verified"
+              },
+              {
+                "type": "rows",
+                "columns": ["block", "changes when…", "cacheable?"],
+                "rows": [
+                  { "cells": ["system prompt (65)", "you redeploy", "yes — stable prefix"], "tone": "win" },
+                  { "cells": ["POLICY (static)", "the plan rules change, i.e. rarely", "yes"], "tone": "win" },
+                  { "cells": ["PROCEDURE CATALOG (static)", "a procedure is added", "yes"], "tone": "win" },
+                  { "cells": ["CURRENT REQUESTS", "any clinician touches the queue", "no — volatile suffix"] },
+                  { "cells": ["your question (19)", "every call", "no — and it belongs last"] }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Ask it a second time",
+      "narrative": [
+        "Ask the identical question again, same mode, nothing touched in between. The token count does not move — you are still sending 732 tokens — but the <b>cache read</b> badge on the receipt stops saying 0%. The stable prefix was written to the cache on the first call and read back on the second.",
+        "This is why caching is not a compression technique and does not belong in the four families. Nothing got smaller. The same bytes were re-sent and billed differently, because a cache read is charged well below a fresh input token while a cache write costs a shade more than one. You are paying for <em>position</em>, not for <em>size</em>.",
+        "One honesty note before you go looking: the recorded grid this course ships shows <code>cache_read = 0</code> on all 100 rows, because replay mode never calls the API and so never touches a real cache. The badge only moves when you run the app live with a key. The token totals below are measured; the cache behaviour is what the live run demonstrates."
+      ],
+      "youDo": "Ask <b>Q3</b> in <code>cached</code> twice in a row and watch only the cache-read chip on the two receipts.",
+      "state": {
+        "label": "two identical calls",
+        "before": {
+          "title": "CALL 1 — the prefix is written",
+          "view": {
+            "type": "receipt",
+            "mode": "cached",
+            "question": "Q3 · score thresholds",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 648 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 19 }
+            ],
+            "inputTotal": 732,
+            "output": 30,
+            "cost": "$0.002938",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "cold — nothing to read yet"
+          }
+        },
+        "after": {
+          "title": "CALL 2 — the prefix is read",
+          "view": {
+            "type": "receipt",
+            "mode": "cached",
+            "question": "Q3 · score thresholds",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 648 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 19 }
+            ],
+            "highlight": ["System", "Retrieved"],
+            "inputTotal": 732,
+            "output": 30,
+            "cost": "cheaper — same tokens",
+            "cacheRead": "HIT — static prefix",
+            "verdict": "verified",
+            "verdictNote": "identical bytes, identical answer, different bill"
+          }
+        }
+      }
+    },
+    {
+      "title": "Now change one byte",
+      "narrative": [
+        "Flip any toggle and ask again. The badge goes back to <b>0%</b>. Not reduced — zero. Cache matching is a prefix match: it walks from position zero and stops at the first byte that differs, and everything from there on is a miss.",
+        "That is the whole failure mode, and it is why the classic anti-pattern is so expensive. Put a timestamp — or a session id, or a user name, or a randomly-ordered tool list — anywhere near the front of your prompt and you have invalidated every stable token behind it, on every call, forever. Your cache-hit rate reads 0% and nothing in the response looks wrong.",
+        "The prep-kitchen version: one cook relabels a container at the front of the line mid-service. The cost is not the relabelling. The cost is that every station behind it has to re-check its own work."
+      ],
+      "youDo": "With Q3 still pinned, switch to any other mode, then switch back to <code>cached</code> and ask again. Read the badge.",
+      "claudeSays": "Nothing about the request was semantically different. The byte sequence changed at a position ahead of the stable content, so the prefix no longer matched.",
+      "terminal": [
+        { "kind": "prompt", "text": "[ask #2 — cached, unchanged]" },
+        { "kind": "out-pass", "text": "cache read: HIT — the static prefix was served from cache" },
+        { "kind": "prompt", "text": "[toggle changed, then back to cached — ask #3]" },
+        { "kind": "gate", "text": "⏸  prefix match walks from position 0 … first differing byte at the top of the assembled prompt" },
+        { "kind": "out-fail", "text": "cache read 0% — every token behind the change re-billed at full input rate" }
+      ],
+      "state": {
+        "label": "the invalidation",
+        "before": {
+          "title": "BEFORE — a clean prefix",
+          "view": {
+            "type": "diff",
+            "file": "assembled prompt (head)",
+            "lines": [
+              ["p", "SYSTEM: You are a prior-authorization assistant. …"],
+              ["p", "POLICY (static): score >= 80 APPROVED; >= 50 MANUAL_REVIEW; else DENIED"],
+              ["p", "PROCEDURE CATALOG (static): 72148 MRI Lumbar Spine · 29881 Knee Arthroscopy · …"],
+              ["p", "CURRENT REQUESTS: PA-1002 … PA-1004 … PA-1010 …"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — one volatile token at the front",
+          "view": {
+            "type": "diff",
+            "file": "assembled prompt (head)",
+            "lines": [
+              ["a", "SYSTEM: You are a prior-authorization assistant. Current time: 2026-08-28T14:31:07Z"],
+              ["m", "POLICY (static): …            ← still identical, still re-billed"],
+              ["m", "PROCEDURE CATALOG (static): …  ← still identical, still re-billed"],
+              ["m", "CURRENT REQUESTS: …            ← never was cacheable anyway"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The ordering rule",
+      "narrative": [
+        "The fix is not clever, which is why it gets skipped: <b>stable content first, volatile content last</b>, with no exceptions for convenience. System prompt, then tool schemas, then canonical examples, then the policy and catalog blocks, then whatever changes per call, then the user's turn.",
+        "Read the <code>cached</code> assembler and that is literally all it does differently from <code>naive</code>: it emits the static block, then the dynamic block, and marks the boundary as cacheable. Same facts, same model, a different order.",
+        "Every timestamp, id, counter, or \"helpful\" per-call preamble you were going to put at the top has a home at the bottom instead. If a value must be near the front for the model to behave, that is a prompt-design problem to solve once — not a reason to burn the cache on every call."
+      ],
+      "youDo": "Print your own assembled prompt and mark each block <code>STATIC</code> or <code>VOLATILE</code>. If any VOLATILE line appears above a STATIC one, you have found your cache leak.",
+      "state": {
+        "label": "assembly order",
+        "before": {
+          "title": "BEFORE — convenient order",
+          "view": {
+            "type": "diff",
+            "file": "assembler/cached.py",
+            "lines": [
+              ["p", "def build(question, session):"],
+              ["m", "    parts = [f\"Session {session} at {now()}\"]   # volatile, at position zero"],
+              ["m", "    parts += [SYSTEM, policy_line(), procedures_text()]"],
+              ["m", "    parts += [current_requests(), question]"],
+              ["m", "    return \"\\n\\n\".join(parts)                   # cache hit rate: 0%, always"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — static-first, boundary marked",
+          "view": {
+            "type": "diff",
+            "file": "assembler/cached.py",
+            "lines": [
+              ["p", "def build(question, session):"],
+              ["a", "    static  = [SYSTEM, tool_schemas(), canonical_examples(),"],
+              ["a", "               policy_line(), procedures_text()]      # identical on every call"],
+              ["a", "    dynamic = [current_requests(), f\"Session {session} at {now()}\", question]"],
+              ["a", "    return cacheable(static) + \"\\n\\n\" + \"\\n\\n\".join(dynamic)"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "A lint you can write in twenty lines",
+      "narrative": [
+        "Cache leaks are invisible in output and cheap to detect, which makes them a perfect thing to automate. Assemble the same prompt twice with different inputs, diff the two, and find the position of the first differing byte. Everything before it is your real cacheable prefix; everything you <em>thought</em> was cacheable after it is rent you are still paying.",
+        "Then assert on it. If the stable prefix is shorter than the static content you designed, fail the build — a regression that pushes a timestamp up by one line should break CI, not quietly triple your bill next quarter.",
+        "Run it against your own agent before you tune anything else. It is the highest-yield twenty lines in this module."
+      ],
+      "youDo": "Write <code>lint_cacheability.py</code>: assemble twice with different questions, find the first divergent index, and assert it is at least as long as your declared static surface.",
+      "terminal": [
+        { "kind": "prompt", "text": "python lint_cacheability.py --mode cached" },
+        { "kind": "out", "text": "declared static surface : 713 chars (system + tools + policy + catalog)" },
+        { "kind": "out", "text": "measured stable prefix  :  38 chars" },
+        { "kind": "out-fail", "text": "✕ FAIL — prefix diverges at char 38: 'Current time: 2026-08-28T14:31:07Z'" },
+        { "kind": "out", "text": "hint: move volatile values below the static block" },
+        { "kind": "prompt", "text": "python lint_cacheability.py --mode cached   # after the fix" },
+        { "kind": "out-pass", "text": "✓ PASS — measured stable prefix 713 chars ≥ declared 713" }
+      ],
+      "state": {
+        "label": "what the lint measures",
+        "before": {
+          "title": "TWO ASSEMBLIES, ONE DIVERGENCE POINT",
+          "view": {
+            "type": "rows",
+            "columns": ["check", "before", "after"],
+            "rows": [
+              { "cells": ["declared static surface", "713 chars", "713 chars"] },
+              { "cells": ["measured stable prefix", "38 chars", "713 chars"] },
+              { "cells": ["first divergence", "a timestamp in the system block", "the CURRENT REQUESTS block — correct"] },
+              { "cells": ["build gate", "✕ FAIL", "✓ PASS"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Caching is not the cheapest arm, and never was",
+      "narrative": [
+        "Now the honest part. Across the ten graded questions, <code>cached</code> answers all ten correctly with a median of <b>731 input tokens</b> — and it is beaten on token count by <code>okf</code> (186), <code>notes</code> (198), <code>compressed</code> (231), <code>jit</code> (251) and <code>graph</code> (444). On Q3 specifically it sends 732 tokens where okf sends 186.",
+        "That is not a defect; it is the point. Caching optimises the <em>cost of a position</em>, not the number of tokens in it. A cached 732-token prompt is cheaper per call than an uncached 732-token prompt, and still four times bigger than it needed to be.",
+        "So do both, in this order. Shrink the surface first with the select and write families, then order what survives static-first so the cache pays the rent on the part you genuinely cannot remove. Caching a bloated prompt is a discount on a bad decision."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q3-cached,bench/results/replay-fullgrid.json#Q3-okf,bench/results/replay-fullgrid.json#Q3-notes,bench/results/replay-fullgrid.json#Q3-jit",
+      "state": {
+        "label": "Q3 · cached against the field",
+        "before": {
+          "title": "ALL VERIFIED — CACHED IS NOT THE SMALL ONE",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "Q3 input tokens", "mode median", "verdict"],
+            "rows": [
+              { "cells": ["okf", "186", "186", "✓ verified"], "tone": "win" },
+              { "cells": ["notes", "231", "198", "✓ verified"], "tone": "win" },
+              { "cells": ["compressed", "234", "231", "✓ verified on Q3"] },
+              { "cells": ["jit", "285", "251", "✓ verified"] },
+              { "cells": ["graph", "840", "444", "✓ verified"] },
+              { "cells": ["cached", "732", "731", "✓ verified — cheaper per call, not per token"], "tone": "bad" },
+              { "cells": ["naive", "1,696", "1,696", "✓ verified on Q3"] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

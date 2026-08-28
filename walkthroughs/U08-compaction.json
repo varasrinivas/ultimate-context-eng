@@ -1,0 +1,247 @@
+{
+  "id": "uce-compaction",
+  "badge": "WALKTHROUGH",
+  "color": "#33506B",
+  "time": "~5 min",
+  "title": "Turn 34, and the window isn't full",
+  "spec": "U08 · compaction, and the audit of what survived it",
+  "intro": "A review session degrades at 31% window utilisation, gets compacted, and then gets audited: which decisions and open issues survived the collapse, and which one quietly dissolved.",
+  "provenance": {
+    "kind": "illustrative"
+  },
+  "foot": "Do it for real: ask Q1, Q3, Q6 and Q9 in one <code>naive</code> session and watch the sparkline climb; refresh and repeat in <code>notes</code>.",
+  "steps": [
+    {
+      "title": "The session is failing at 31% full",
+      "narrative": [
+        "A reviewer has been working the MedFlow queue for thirty-four turns. Nothing has errored, the window is nowhere near its limit — and at turn 31 the copilot re-asked a question that was answered at turn 6.",
+        "This is <strong>context rot</strong> in its session form. The failure axis is signal-to-noise, not size: the answer is still in the window, buried under twenty-eight turns of tool dumps, resolved detours and pleasantries. A bigger window buries it deeper."
+      ],
+      "youDo": "Open the session strip and read the sparkline rather than the last answer. The shape of the curve is the diagnosis.",
+      "state": {
+        "label": "session window · turn 34 · naive",
+        "before": {
+          "title": "ILLUSTRATIVE — a long session, nowhere near the limit",
+          "view": {
+            "type": "window",
+            "label": "200K window · turn 34",
+            "capacity": 200000,
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved (re-sent each turn)", "tokens": 1612 },
+              { "label": "History (28 prior turns)", "tokens": 58900 },
+              { "label": "Tool dumps", "tokens": 1440 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["History (28 prior turns)"],
+            "note": "31% full and already re-asking answered questions. Capacity was never the constraint — this is an illustrative session shape, not a bench cell."
+          }
+        }
+      }
+    },
+    {
+      "title": "Why the curve climbs and never comes down",
+      "narrative": [
+        "The single-call receipts do show the engine of the climb. In <code>naive</code> mode every call re-sends the whole domain dump: Q1's retrieved layer is <b>1,612 tokens</b>, and so is Q3's, Q6's, and Q9's. That block is re-paid on every turn, and the history layer is added on top of it.",
+        "So the naive session cost is not the median of its receipts — it is the sum, plus a history term that grows quadratically with turn count. The four bench questions alone re-carry the same 1,612-token dump four times over."
+      ],
+      "claudeSays": "Nothing decides to forget. An append-only session has no eviction policy, so every turn's material is still competing for attention on turn 34.",
+      "source": "bench/results/replay-fullgrid.json#Q1-naive,bench/results/replay-fullgrid.json#Q9-naive",
+      "state": {
+        "label": "measured — the block that repeats",
+        "before": {
+          "title": "MEASURED — naive's retrieved layer, four questions",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "retrieved layer", "input total", "verdict"],
+            "rows": [
+              { "cells": ["Q1 · criteria for 72148", "1,612", "1,694", "✓ PASS"] },
+              { "cells": ["Q3 · score thresholds", "1,612", "1,696", "✓ PASS"] },
+              { "cells": ["Q6 · why PA-1004 went to review", "1,612", "1,693", "✓ PASS"] },
+              { "cells": ["Q9 · summarize M-2001", "1,612", "1,700", "✓ PASS"] },
+              { "cells": ["<b>same dump, paid four times</b>", "<b>6,448</b>", "<b>6,783</b>", "and that is before history"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Compact: rewrite the case board",
+      "narrative": [
+        "Compaction distils the transcript-so-far into a summary and replaces the raw history with it. What must survive is precise: <b>decisions made</b>, <b>open issues</b>, and <b>load-bearing identifiers</b>. What is meant to dissolve: resolved detours, duplicate tool dumps, and conversation about the conversation.",
+        "Run it as its own clean call. Asking the main model to summarise the very context it is drowning in is the classic own-goal — the compactor inherits the rot it was hired to remove."
+      ],
+      "youDo": "Trigger compaction on a cadence, not at the cliff — the compactor needs a healthy context to do its job.",
+      "terminal": [
+        { "kind": "prompt", "text": "/compact --keep-recent 2" },
+        { "kind": "tool", "text": "compact(turns=34, keep_recent=2) → clean call, not in-session" },
+        { "kind": "out", "text": "extracted  3 decisions, 2 open items, 7 load-bearing ids" },
+        { "kind": "out", "text": "discarded 21 routine turns (chatter, resolved detours, tool dumps)" },
+        { "kind": "out-pass", "text": "✓ history 58,900 → 640 tokens · 2 recent turns kept verbatim" }
+      ],
+      "state": {
+        "label": "the strip flattens",
+        "before": {
+          "title": "BEFORE — turn 34, append-only",
+          "view": {
+            "type": "window",
+            "label": "200K window · before compaction",
+            "capacity": 200000,
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "History (28 prior turns)", "tokens": 58900 },
+              { "label": "Tool dumps", "tokens": 1440 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["History (28 prior turns)"],
+            "note": "Illustrative session shape."
+          }
+        },
+        "after": {
+          "title": "AFTER — the case board plus two recent turns",
+          "view": {
+            "type": "window",
+            "label": "200K window · after compaction",
+            "capacity": 200000,
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Case board (compacted)", "tokens": 640 },
+              { "label": "Recent 2 turns", "tokens": 310 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Case board (compacted)"],
+            "note": "The flattening is the point. What you must now prove is that the collapse kept the load-bearing content."
+          }
+        }
+      }
+    },
+    {
+      "title": "The audit: what survived, what dissolved",
+      "narrative": [
+        "Compaction is a lossy operation you performed on your own memory, so it needs the same scrutiny as U07's compressors. Do not read the summary and nod at it — audit it against a list of things that were <em>required</em> to survive.",
+        "The audit has three tiers. Decisions and open issues must survive verbatim. Load-bearing identifiers — request ids, member ids, scores — must appear literally, because a paraphrase of <code>PA-1004</code> is not <code>PA-1004</code>. Everything else is allowed to go, and most of it should."
+      ],
+      "state": {
+        "label": "compaction audit · turn 34",
+        "before": {
+          "title": "ILLUSTRATIVE — the survival audit",
+          "view": {
+            "type": "rows",
+            "columns": ["content", "tier", "survived?"],
+            "rows": [
+              { "cells": ["PA-1002: wait for the EMG before re-scoring", "decision", "✓ verbatim"], "tone": "win" },
+              { "cells": ["PA-1010: borderline at 50 — keep in review", "decision", "✓ verbatim"], "tone": "win" },
+              { "cells": ["M-2002 is STANDARD tier, surgical not covered", "load-bearing id", "✓ verbatim"], "tone": "win" },
+              { "cells": ["Eligibility confusion — resolved, tier covers it", "resolved detour", "dissolved (correct)"] },
+              { "cells": ["4KB of raw queue JSON, re-read three times", "tool dump", "dissolved (correct)"] },
+              { "cells": ["\"ok next\" · \"thanks\" · \"looking at the queue\"", "chatter", "dissolved (correct)"] },
+              { "cells": ["PA-1004: conservative-management window ends 2026-09-23", "<b>open issue</b>", "<b>✕ dissolved</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The open issue that dissolved",
+      "narrative": [
+        "The summariser kept both decisions and rewrote the open items as <em>\"a few requests remain pending review\"</em> — accurate, fluent, and useless. PA-1004 has a deadline attached to it; \"a few requests\" does not.",
+        "This is exactly the shape of U07's voided saving, moved from the retrieved layer to the history layer. A compaction that loses an open issue has not compressed the session; it has closed it. So compaction gets the same treatment compression got: an assertion that runs before the board is allowed to replace the transcript."
+      ],
+      "youDo": "Break it on purpose in the U08 lab: compact away an open item and watch the assertion refuse the board.",
+      "terminal": [
+        { "kind": "tool", "text": "compact(turns=34) → board 640 tokens" },
+        { "kind": "gate", "text": "⏸  ASSERT — every decision and open item present verbatim" },
+        { "kind": "out-fail", "text": "✕ compaction lost: 'PA-1004: conservative-management window ends 2026-09-23'\n         board REFUSED — history left intact, compaction retried with open items pinned" }
+      ],
+      "state": {
+        "label": "the compactor, with a contract",
+        "before": {
+          "title": "BEFORE — ships whatever the summariser produced",
+          "view": {
+            "type": "diff",
+            "file": "session/compact.py",
+            "lines": [
+              ["p", "def compact(turns, keep_recent=2):"],
+              ["p", "    old, recent = turns[:-keep_recent], turns[-keep_recent:]"],
+              ["p", "    board = summarize(old)"],
+              ["m", "    return [{'kind': 'summary', 'text': board}] + recent"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — decisions and open items must survive verbatim",
+          "view": {
+            "type": "diff",
+            "file": "session/compact.py",
+            "lines": [
+              ["p", "def compact(turns, keep_recent=2):"],
+              ["p", "    old, recent = turns[:-keep_recent], turns[-keep_recent:]"],
+              ["p", "    board = summarize(old)"],
+              ["a", "    for t in old:"],
+              ["a", "        if t.get('kind') in ('decision', 'open'):"],
+              ["a", "            assert t['text'] in board, f\"compaction lost: {t['text']!r}\""],
+              ["p", "    return [{'kind': 'summary', 'text': board}] + recent"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "What the single-call receipts can and cannot tell you",
+      "narrative": [
+        "Be honest about the evidence. The shipped grid is <b>single-call</b>: one question, one assembly, one receipt. It cannot measure multi-turn pressure at all, which is why this walkthrough's session numbers are labelled illustrative rather than dressed up as bench cells.",
+        "What the grid <em>can</em> show is the destination compaction is heading toward. The <code>notes</code> arm keeps its established facts outside the window and loads them back as a small history layer: Q1 answers at <b>141 tokens</b>, of which only <b>64</b> is history, and the arm holds a <b>197.5-token median at 10/10 correct</b> against naive's 1,696 at 9/10. Compaction bends the curve; notes moves the memory off the curve entirely.",
+        "The rule to carry into U09: compaction preserves the <em>thread</em>, notes preserve the <em>facts</em>. Pick by task shape — a clinician arguing one borderline determination wants the thread; a reviewer clearing a queue wants the facts."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q1-notes,bench/results/replay-fullgrid.json#Q1-naive",
+      "state": {
+        "label": "measured — Q1, naive vs notes",
+        "before": {
+          "title": "MEASURED — naive re-sends the world",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q1 · criteria and weights for 72148",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 17 }
+            ],
+            "inputTotal": 1694,
+            "output": 50,
+            "cost": "$0.005832",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "correct — and re-paid on every turn of the session"
+          }
+        },
+        "after": {
+          "title": "MEASURED — notes carries facts, not transcript",
+          "view": {
+            "type": "receipt",
+            "mode": "notes",
+            "question": "Q1 · criteria and weights for 72148",
+            "layers": [
+              { "label": "System", "tokens": 37 },
+              { "label": "Retrieved", "tokens": 31 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 64 },
+              { "label": "Your turn", "tokens": 9 }
+            ],
+            "inputTotal": 141,
+            "output": 50,
+            "cost": "$0.001173",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "10/10 correct across the grid · 197.5-token median",
+            "highlight": ["History"]
+          }
+        }
+      }
+    }
+  ]
+}

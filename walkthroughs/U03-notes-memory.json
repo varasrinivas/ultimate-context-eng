@@ -1,0 +1,229 @@
+{
+  "id": "uce-notes-memory",
+  "badge": "WALKTHROUGH",
+  "color": "#2F6F5E",
+  "time": "~5 min",
+  "title": "The handover sheet",
+  "spec": "U03 · what notes mode actually moves, and what it costs to keep",
+  "intro": "Ask Q9 in naive, then in notes. The bill drops from 1,700 tokens to 167 — but not for the reason the word \"memory\" suggests. Read the layers and you find out what the write family really buys, and what you have to pay every turn to keep it.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json#Q9-naive,bench/results/replay-fullgrid.json#Q9-notes"
+  },
+  "foot": "Do it for real: Copilot panel, preset <b>Q9</b>, <code>naive</code> then <code>notes</code> — and keep the same session",
+  "steps": [
+    {
+      "title": "Ask it twice",
+      "narrative": [
+        "Q9 is the aggregation preset: <em>\"Summarize member M-2001's authorization history: how many requests and what were the outcomes?\"</em> Ask it in <code>naive</code>, then flip to <code>notes</code> and ask it again in the same session.",
+        "Both answers name PA-1001 APPROVED and PA-1004 MANUAL_REVIEW; both come back ✓ verified. The interesting thing is not the answer, it is the receipt: <b>1,700 tokens</b> becomes <b>167</b>, and the layer shares are not the same shape at all."
+      ],
+      "youDo": "Pin <b>Q9</b>, ask in <code>naive</code>, then switch the toggle to <code>notes</code> and ask again without changing the session.",
+      "claudeSays": "On the notes ask, the assembler pulled only the requests the question names into the retrieved layer, and put structured session notes into the history layer instead of a transcript.",
+      "source": "bench/results/replay-fullgrid.json#Q9-naive,bench/results/replay-fullgrid.json#Q9-notes",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?" },
+        { "kind": "tool", "text": "assemble(mode=naive) → retrieved: FULL DOMAIN DATA (JSON)" },
+        { "kind": "out-pass", "text": "✓ verified · 1,700 input tokens · $0.00549" },
+        { "kind": "prompt", "text": "[same question, toggle → notes]" },
+        { "kind": "tool", "text": "assemble(mode=notes) → retrieved: 2 matched request lines · history: SESSION NOTES (structured)" },
+        { "kind": "out-pass", "text": "✓ verified · 167 input tokens · $0.000891" }
+      ],
+      "state": {
+        "label": "same question, same verdict",
+        "before": {
+          "title": "TWO ASKS, ONE ANSWER KEY",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "input tokens", "cost", "verdict"],
+            "rows": [
+              { "cells": ["naive", "1,700", "$0.00549", "✓ verified"] },
+              { "cells": ["notes", "167", "$0.000891", "✓ verified"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The shape, not just the size",
+      "narrative": [
+        "Naive spends 95% of its input in one line: <b>retrieved 1,612</b>, the entire seeded domain dumped in as JSON so the model can go find two rows in it.",
+        "Notes has no line anywhere near that. <b>Retrieved 50</b> — the two request lines that mention M-2001. <b>History 58</b> — session notes, written outside the window and read back in. <b>System 44</b>, <b>user 15</b>. Five thin layers instead of one fat one."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-naive,bench/results/replay-fullgrid.json#Q9-notes",
+      "state": {
+        "label": "token receipt · Q9",
+        "before": {
+          "title": "NAIVE — 1,700",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 1700,
+            "output": 26,
+            "cost": "$0.00549",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        },
+        "after": {
+          "title": "NOTES — 167",
+          "view": {
+            "type": "receipt",
+            "mode": "notes",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 44 },
+              { "label": "Retrieved", "tokens": 50 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 58 },
+              { "label": "Your turn", "tokens": 15 }
+            ],
+            "highlight": ["Retrieved", "History"],
+            "inputTotal": 167,
+            "output": 26,
+            "cost": "$0.000891",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Be honest about where the 1,533 went",
+      "narrative": [
+        "It is tempting to read this as \"memory saved 90%\". Look again at naive's history line: it is <b>0</b>. There was no transcript to replace. On a single ask, most of the drop is the <em>retrieved</em> layer narrowing from 1,612 to 50 — a select move that lives inside notes mode, not the write move itself.",
+        "So what did writing actually buy? The 58-token history layer — and the fact that it is <b>flat</b>. Raw history grows with every turn: ask ten questions in a session and naive carries ten question-and-answer pairs forward. Structured notes carry one line per ask, capped and rewritable. The write payoff is a <em>slope</em>, not a point, which is exactly why a one-ask screenshot undersells it.",
+        "This matters for how you argue for it. If you pitch external memory on a single-turn benchmark, someone will point out that a narrower retriever got most of the win. Pitch it on turn twelve."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-naive,bench/results/replay-fullgrid.json#Q9-notes",
+      "state": {
+        "label": "attributing the drop",
+        "before": {
+          "title": "WHICH LAYER MOVED, AND WHY",
+          "view": {
+            "type": "rows",
+            "columns": ["layer", "naive", "notes", "what did it"],
+            "rows": [
+              { "cells": ["Retrieved", "1,612", "50", "select — only the requests naming M-2001 ship"], "tone": "win" },
+              { "cells": ["History", "0", "58", "<b>write</b> — structured notes read back in place of a transcript"] },
+              { "cells": ["System", "65", "44", "a shorter system block on the notes path"] },
+              { "cells": ["Your turn", "23", "15", "the question, restated against the notes"] },
+              { "cells": ["<b>total</b>", "<b>1,700</b>", "<b>167</b>", "both stamped ✓ verified"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "What is actually in the 58 tokens",
+      "narrative": [
+        "Open the notes store and the line the app wrote after your first ask is unremarkable on purpose: <code>- asked[Q9] verdict=PASS facts=Member M-2001 has 2 authorization requests: PA-1001 APPROVED (score 100); PA-1004 MANUAL_REVIEW (score 65).</code>",
+        "Three properties do all the work. It is <b>structured</b> — a fixed shape, so the next reader knows where to look. It <b>carries identifiers</b> — PA-1001, PA-1004, MANUAL_REVIEW survive verbatim, which is precisely what the compressor in U07 fails to do. And it is <b>a fact, not a transcript</b> — no \"the user then asked\", no restated question.",
+        "Get any of the three wrong and you have not built memory, you have renamed history. Pasted conversation chunks under the heading NOTES cost the same tokens and read back worse."
+      ],
+      "youDo": "After two or three asks in the same session, hit the notes store and read every line it has written. If a line does not contain an identifier, ask what it is for.",
+      "state": {
+        "label": "note quality",
+        "before": {
+          "title": "BEFORE — transcript hoarding with a new label",
+          "view": {
+            "type": "diff",
+            "file": "session-notes.txt",
+            "lines": [
+              ["p", "SESSION NOTES"],
+              ["m", "- User asked about member M-2001 and I explained their history."],
+              ["m", "- Then the user asked a follow-up about the review threshold."],
+              ["m", "- I said it was fairly high and gave some context."]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — structured, identifier-bearing",
+          "view": {
+            "type": "diff",
+            "file": "session-notes.txt",
+            "lines": [
+              ["p", "SESSION NOTES (structured, written outside the window)"],
+              ["a", "- asked[Q9] verdict=PASS facts=M-2001 has 2 requests: PA-1001 APPROVED (100); PA-1004 MANUAL_REVIEW (65)."],
+              ["a", "- asked[Q3] verdict=PASS facts=score >= 80 APPROVED; >= 50 MANUAL_REVIEW; else DENIED."],
+              ["a", "- open: PA-1004 awaits a clinician decision"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "How it does across all ten questions",
+      "narrative": [
+        "Run the whole grid and <code>notes</code> answers all ten correctly for <b>1,968 input tokens in total</b> — the smallest total of any mode on the board, against <code>okf</code>'s 2,159 and naive's 15,262 for nine correct answers and one fabrication.",
+        "But be precise about the claim, because the two arms split the honours. By <em>median</em> okf edges it, <b>186 to 198</b>. Notes wins outright on five questions and ties a sixth; okf wins the other four — every canonical or rule-shaped question, where the answer is a stated policy rather than something that happened in this session.",
+        "That is the actual boundary of the write family: notes are for what <em>this session</em> learned. A rule that was true before you opened the app belongs in a canonical file, not a session note."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q1-notes,bench/results/replay-fullgrid.json#Q3-notes,bench/results/replay-fullgrid.json#Q9-notes,bench/results/replay-fullgrid.json#Q10-notes",
+      "state": {
+        "label": "notes vs okf, question by question",
+        "before": {
+          "title": "WHERE SESSION MEMORY WINS — AND WHERE IT LOSES",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "class", "notes", "okf", "cheaper"],
+            "rows": [
+              { "cells": ["Q1", "structural", "141", "362", "notes"], "tone": "win" },
+              { "cells": ["Q2", "structural", "232", "365", "notes"], "tone": "win" },
+              { "cells": ["Q3", "canonical", "231", "186", "<b>okf</b>"], "tone": "bad" },
+              { "cells": ["Q4", "canonical", "143", "186", "notes"], "tone": "win" },
+              { "cells": ["Q5", "logic", "272", "194", "<b>okf</b>"], "tone": "bad" },
+              { "cells": ["Q6", "logic", "228", "183", "<b>okf</b>"], "tone": "bad" },
+              { "cells": ["Q7", "abstention", "157", "157", "tie"] },
+              { "cells": ["Q8", "abstention", "135", "152", "notes"], "tone": "win" },
+              { "cells": ["Q9", "aggregation", "167", "190", "notes"], "tone": "win" },
+              { "cells": ["Q10", "aggregation", "262", "184", "<b>okf</b>"], "tone": "bad" },
+              { "cells": ["<b>total · all verified</b>", "", "<b>1,968</b>", "<b>2,159</b>", "notes"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The bill for keeping the sheet",
+      "narrative": [
+        "Nothing writes those notes for free. Every ask in <code>notes</code> mode pays an append, and every note you keep is a line someone has to prune, re-check, or retire. Skip the pruning and the sheet becomes a second history layer with worse formatting — the write-only failure mode.",
+        "The sharper risk is staleness. A note is asserted as fact and read back with no provenance check, so when the underlying record changes and the note does not, the model does not hedge — it states the old outcome confidently, at 167 tokens, with a receipt that looks exactly as clean as a correct one. <b>A stale note is a confident lie with a good bill.</b>",
+        "That is why U11 makes you restart the backend whenever seed data changes, and why the notes you keep should carry the identifier that lets you re-derive them. A note you cannot re-check is not memory; it is a rumour you are paying to reread."
+      ],
+      "youDo": "Break it on purpose: ask Q9 in <code>notes</code>, change PA-1004's decision in the seed, restart the backend <em>without</em> clearing the session, and ask Q9 again. Read the answer, then read the note it came from.",
+      "terminal": [
+        { "kind": "prompt", "text": "[seed edited: PA-1004 MANUAL_REVIEW → APPROVED · backend restarted · session kept]" },
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?" },
+        { "kind": "tool", "text": "assemble(mode=notes) → history: - asked[Q9] verdict=PASS facts=… PA-1004 MANUAL_REVIEW (score 65)." },
+        { "kind": "gate", "text": "⏸  the note says MANUAL_REVIEW · the record now says APPROVED · nothing in the pipeline compares them" },
+        { "kind": "out-fail", "text": "the answer is stated with full confidence, and the receipt looks identical to a correct one" }
+      ],
+      "state": {
+        "label": "the upkeep column",
+        "before": {
+          "title": "WHAT THE WRITE FAMILY COSTS YOU",
+          "view": {
+            "type": "rows",
+            "columns": ["cost", "when it bites", "the mitigation"],
+            "rows": [
+              { "cells": ["an append on every turn", "immediately — it is real work per ask", "keep the note shape fixed and short"] },
+              { "cells": ["unbounded growth", "around turn twenty, if you never prune", "cap the sheet; retire notes that no longer bear on the task"] },
+              { "cells": ["staleness", "the moment the underlying record changes", "carry the identifier so the note can be re-derived, and re-derive it"], "tone": "bad" },
+              { "cells": ["no provenance on read-back", "silently, forever", "stamp notes with their source and age; treat an old note as a claim, not a fact"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

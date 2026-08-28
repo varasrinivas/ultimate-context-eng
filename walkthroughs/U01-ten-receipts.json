@@ -1,0 +1,235 @@
+{
+  "id": "uce-ten-receipts",
+  "badge": "WALKTHROUGH",
+  "color": "#B45309",
+  "time": "~6 min",
+  "title": "Ten receipts, one question",
+  "spec": "U01 · the five layers and the four families, read off a single question",
+  "intro": "Pin Q9 and ask it in every one of the ten toggles, left to right. You are not comparing answers — nine of the ten say the same thing. You are comparing receipt shapes, and one of them stops saying the same thing.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json#Q9"
+  },
+  "foot": "Do it for real: Copilot panel, preset <b>Q9</b>, toggle bar left to right · or <code>python bench/run_campaign.py --questions Q9 --modes naive,budgeted,compressed,cached,jit,graph,okf,notes,isolated,routed</code>",
+  "steps": [
+    {
+      "title": "Ask the same question ten times",
+      "narrative": [
+        "Q9 is the aggregation preset: <em>\"Summarize member M-2001's authorization history: how many requests and what were the outcomes?\"</em> Its answer key wants five facts — <code>2</code>, <code>PA-1001</code>, <code>APPROVED</code>, <code>PA-1004</code>, <code>MANUAL_REVIEW</code>.",
+        "One question, ten strategies, ten graded receipts. That grid is the whole module: every toggle on the bar is a module later in the course, and this is the first time you see them all standing next to each other."
+      ],
+      "youDo": "Pin <b>Q9</b> in the standing-questions list and click through the toggle bar left to right — <code>naive</code> to <code>routed</code>, ten asks.",
+      "claudeSays": "Each ask re-assembles the context from scratch under a different strategy, then the same answer key grades whatever comes back.",
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/run_campaign.py --questions Q9 --modes naive,budgeted,compressed,cached,jit,graph,okf,notes,isolated,routed" },
+        { "kind": "out", "text": " Q9 naive      r0   1,700 tok  PASS\n Q9 budgeted   r0     565 tok  PASS\n Q9 compressed r0     208 tok  FAIL (SAVINGS VOID)\n Q9 cached     r0     736 tok  PASS\n Q9 jit        r0     220 tok  PASS" },
+        { "kind": "out", "text": " Q9 graph      r0     286 tok  PASS\n Q9 okf        r0     190 tok  PASS\n Q9 notes      r0     167 tok  PASS\n Q9 isolated   r0   1,796 tok  PASS\n Q9 routed     r0   1,796 tok  PASS" },
+        { "kind": "out-fail", "text": "1 of 10 cells void: compressed — missing PA-1004, MANUAL_REVIEW" }
+      ],
+      "state": {
+        "label": "Q9 · all ten modes",
+        "before": {
+          "title": "TEN RECEIPTS FOR ONE QUESTION",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "input tokens", "verdict"],
+            "rows": [
+              { "cells": ["naive", "1,700", "✓ verified"] },
+              { "cells": ["budgeted", "565", "✓ verified"] },
+              { "cells": ["compressed", "208", "✕ FAILED"], "tone": "bad" },
+              { "cells": ["cached", "736", "✓ verified"] },
+              { "cells": ["jit", "220", "✓ verified"] },
+              { "cells": ["graph", "286", "✓ verified"] },
+              { "cells": ["okf", "190", "✓ verified"] },
+              { "cells": ["notes", "167", "✓ verified"], "tone": "win" },
+              { "cells": ["isolated", "1,796", "✓ verified"] },
+              { "cells": ["routed", "1,796", "✓ verified"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Five layers: the receipt's unit of account",
+      "narrative": [
+        "Every receipt itemizes the same five lines — <b>system</b>, <b>retrieved</b>, <b>tool results</b>, <b>history</b>, <b>user turn</b> — and they always sum to the input total. That sum rule is your first sanity check on any token dashboard.",
+        "Put <code>naive</code> and <code>notes</code> side by side and the point lands without a single definition. Naive spends 1,612 of its 1,700 tokens in one layer. Notes spends 50 there, moves 58 into history, and finishes the job for 167."
+      ],
+      "claudeSays": "Both answers name PA-1001 APPROVED and PA-1004 MANUAL_REVIEW. The model did nothing different; the assembler did.",
+      "source": "bench/results/replay-fullgrid.json#Q9-naive,bench/results/replay-fullgrid.json#Q9-notes",
+      "state": {
+        "label": "same answer, two shapes",
+        "before": {
+          "title": "NAIVE — one fat layer",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "highlight": ["Retrieved"],
+            "inputTotal": 1700,
+            "output": 26,
+            "cost": "$0.00549",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        },
+        "after": {
+          "title": "NOTES — five thin ones",
+          "view": {
+            "type": "receipt",
+            "mode": "notes",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 44 },
+              { "label": "Retrieved", "tokens": 50 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 58 },
+              { "label": "Your turn", "tokens": 15 }
+            ],
+            "highlight": ["Retrieved", "History"],
+            "inputTotal": 167,
+            "output": 26,
+            "cost": "$0.000891",
+            "cacheRead": "0%",
+            "verdict": "verified"
+          }
+        }
+      }
+    },
+    {
+      "title": "Four families, ten toggles",
+      "narrative": [
+        "Every one of the ten strategies is a member of one of four families. <b>Write</b> puts context outside the window and reads it back (notes). <b>Select</b> ships only the shortlist (budgeted, jit, graph, okf). <b>Compress</b> rewrites what ships into fewer tokens (compressed). <b>Isolate</b> hands the load to a sub-agent with its own window (isolated).",
+        "Diagnose by layer, then act by family. Q9's fat line is <code>retrieved</code>, so anything that attacks retrieved is a candidate — and four different families all have a way in. That is why the taxonomy argument is a waste of time: name the layer, and the shortlist writes itself."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "state": {
+        "label": "family → layer → Q9 result",
+        "before": {
+          "title": "THE MAP, WITH Q9's NUMBERS ATTACHED",
+          "view": {
+            "type": "rows",
+            "columns": ["family", "toggles", "layer it attacks", "best on Q9"],
+            "rows": [
+              { "cells": ["write", "notes", "history (replaces raw transcript)", "167 ✓"], "tone": "win" },
+              { "cells": ["select", "budgeted · jit · graph · okf", "retrieved", "190 ✓ (okf)"] },
+              { "cells": ["compress", "compressed", "retrieved", "208 ✕ FAILED"], "tone": "bad" },
+              { "cells": ["isolate", "isolated", "moves retrieved into tool results", "1,796 ✓"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The two that do not fit",
+      "narrative": [
+        "Two toggles are not strategy families at all, and mislabelling them is a real mistake. <code>cached</code> ships <em>the same facts</em> — 736 input tokens on Q9, more than four of the select arms — but re-orders them so the stable part sits at the front where a cache can read it. It is position economics, not token reduction.",
+        "<code>routed</code> is not a lever either; it <em>chooses</em> levers by question class. On Q9 the router classifies aggregation and dispatches to <code>isolated</code> — so routed's receipt is isolated's receipt, 1,796 tokens, the most expensive correct arm on this question. A router is only ever as good as the graded evidence behind it, and this one has a class it has not learned yet."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-cached,bench/results/replay-fullgrid.json#Q9-routed",
+      "state": {
+        "label": "the misfits",
+        "before": {
+          "title": "NEITHER OF THESE IS A FAMILY",
+          "view": {
+            "type": "rows",
+            "columns": ["toggle", "Q9 tokens", "what it actually changes"],
+            "rows": [
+              { "cells": ["cached", "736", "the <b>order</b> of the same content, so a prefix can be cached — cost per token, not count"] },
+              { "cells": ["routed", "1,796", "which family runs — on aggregation it picks <code>isolated</code>, the priciest correct arm here"], "tone": "bad" },
+              { "cells": ["okf", "190", "for contrast: an actual select move on the same question"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The shape that changed most",
+      "narrative": [
+        "Look for the receipt that does not merely shrink but <em>re-plumbs</em>. That is <code>isolated</code>: retrieved drops to <b>0</b> and 1,710 tokens appear under tool results, because a sub-agent read the domain in its own window and handed back a summary.",
+        "And it costs <b>more than naive</b> — 1,796 against 1,700, with double the output tokens, because the main call pays for the sub-agent's work plus its own turn. Isolation buys you a clean window and a bounded blast radius. On a one-shot lookup it buys you nothing and charges you for it."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-isolated",
+      "state": {
+        "label": "token receipt · Q9 · isolated",
+        "before": {
+          "title": "SAME TOTAL, DIFFERENT PLUMBING — AND DEARER THAN THE CONTROL",
+          "view": {
+            "type": "receipt",
+            "mode": "isolated",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 64 },
+              { "label": "Retrieved", "tokens": 0 },
+              { "label": "Tool results", "tokens": 1710 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 22 }
+            ],
+            "highlight": ["Retrieved", "Tool results"],
+            "inputTotal": 1796,
+            "output": 52,
+            "cost": "$0.006168",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "correct, and 96 tokens more expensive than naive"
+          }
+        }
+      }
+    },
+    {
+      "title": "The one that changed the verdict",
+      "narrative": [
+        "Nine receipts differ in shape. One differs in <b>outcome</b>. <code>compressed</code> comes back at 208 tokens — an 88% saving against the control — and the grader stamps it <b>✕ FAILED</b>, because the abstract dropped PA-1004 and MANUAL_REVIEW and replaced them with \"her history shows consistent approvals\".",
+        "That is the law this course runs on: <b>a saving that changes the answer is not a saving.</b> Shape is interesting; the stamp is decisive. U07 takes this exact cell apart and fixes it."
+      ],
+      "youDo": "Re-ask Q9 in <code>compressed</code> and read the answer text, not the token total, before you look at the stamp.",
+      "source": "bench/results/replay-fullgrid.json#Q9-compressed",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?" },
+        { "kind": "tool", "text": "assemble(mode=compressed) → prune → extract-verbatim → abstract : retrieved 1,612 → 120 tok" },
+        { "kind": "claude", "text": "Member M-2001 (Rosa Delgado) has 2 authorization requests:\nPA-1001 was APPROVED. Her history shows consistent approvals." },
+        { "kind": "gate", "text": "⏸  GRADING against the Q9 answer key (5 required facts)" },
+        { "kind": "out-fail", "text": "✕ FAILED — missing: PA-1004, MANUAL_REVIEW · savings void" }
+      ],
+      "state": {
+        "label": "the only column that decides",
+        "before": {
+          "title": "SORTED BY TOKENS — THE TEMPTING VIEW",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "input tokens"],
+            "rows": [
+              { "cells": ["notes", "167"] },
+              { "cells": ["okf", "190"] },
+              { "cells": ["compressed", "208"], "tone": "win" },
+              { "cells": ["jit", "220"] },
+              { "cells": ["graph", "286"] }
+            ]
+          }
+        },
+        "after": {
+          "title": "SORTED BY TOKENS, WITH THE STAMP ATTACHED",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "input tokens", "verdict", "eligible?"],
+            "rows": [
+              { "cells": ["notes", "167", "✓ verified", "yes"], "tone": "win" },
+              { "cells": ["okf", "190", "✓ verified", "yes"], "tone": "win" },
+              { "cells": ["compressed", "208", "✕ FAILED", "<b>no — savings void</b>"], "tone": "bad" },
+              { "cells": ["jit", "220", "✓ verified", "yes"] },
+              { "cells": ["graph", "286", "✓ verified", "yes"] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "id": "uce-two-instruments",
+  "badge": "WALKTHROUGH",
+  "color": "#6366F1",
+  "time": "~6 min",
+  "title": "Two scales, one dose",
+  "spec": "U13 · reconciling the Token Lens with the bench harness",
+  "intro": "A drifting scale looks exactly like a working one. Weigh every call twice — the app's own receipt and the external harness — assert they agree, then use the same discipline to read a published 71.5x claim.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json"
+  },
+  "foot": "Do it for real: <code>python bench/run_campaign.py --modes naive,okf --questions Q3 --replay</code> and compare against the Token Lens.",
+  "steps": [
+    {
+      "title": "The pharmacy weighs it twice",
+      "narrative": [
+        "A compounding pharmacy weighs every dose on two different scales. Not because either is bad — because a scale that has drifted produces confident, plausible, wrong numbers, and disagreement is the cheapest detector that exists.",
+        "This repo ships two independent instruments over the same calls. The <b>Token Lens</b> is the app's own receipt: layer-by-layer accounting rendered next to the answer, plus a server-side correctness verdict. The <b>harness</b> is <code>bench/run_campaign.py</code>, which POSTs to <code>/api/copilot/ask</code>, grades the answer itself through <code>bench/verify.py</code>, and writes its own row. Neither reads the other's conclusion."
+      ],
+      "youDo": "Run one cell through the harness while watching the same question in the app.",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/run_campaign.py --modes naive,okf --questions Q3 --replay" },
+        { "kind": "out", "text": " Q3 naive      r0   1,696 tok  PASS \n Q3 okf        r0     186 tok  PASS " },
+        { "kind": "out", "text": "\nmode         graded correct%  median tok (correct only)\n--------------------------------------------------------\nnaive             1     100%                      1,696\nokf               1     100%                        186" },
+        { "kind": "out-pass", "text": "wrote bench/results/campaign-naive-okf.json  ·  no grading mismatches" }
+      ],
+      "source": "bench/run_campaign.py"
+    },
+    {
+      "title": "Assertion one — the layers must sum to the total",
+      "narrative": [
+        "The first reconciliation is arithmetic, and it is the one that catches a broken seam fastest. Every receipt reports five layers and an input total; the total must equal the sum of the layers, for every cell, with no slack.",
+        "Take Q3 in <code>okf</code>: 65 + 102 + 0 + 0 + 19 = <b>186</b>, which is exactly the input total the harness recorded. Run that check across all 100 cells of the shipped grid and the drift count is <b>zero</b>. This is the assertion that would have caught the response-shape seam failure this course hit during its own build — a harness reading a wrapper key that wasn't there, recording 100 cells of zeros, and only being noticed because a 0-token PASS is arithmetically impossible."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q3-okf",
+      "state": {
+        "label": "reconciliation · Q3 · okf",
+        "before": {
+          "title": "MEASURED — layers, and the total they must produce",
+          "view": {
+            "type": "receipt",
+            "mode": "okf",
+            "question": "Q3 · score thresholds for approval / review / denial",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 102 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 19 }
+            ],
+            "inputTotal": 186,
+            "output": 30,
+            "cost": "$0.001008",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "65 + 102 + 0 + 0 + 19 = 186 · 100/100 cells reconcile"
+          }
+        }
+      }
+    },
+    {
+      "title": "Assertion two — two graders, one verdict",
+      "narrative": [
+        "The second reconciliation is about judgement, not arithmetic. Every row carries <code>verdict</code> (the harness graded the answer text against the key) and <code>backend_verdict</code> (the server graded it independently). They must match on every cell. On the shipped grid, <b>100 cells, zero disagreements</b> — and the runner prints a loud WARNING the moment that stops being true.",
+        "An instrument you trust because it has never complained is not an instrument. So prove the grader can fail before you believe it passing: <code>bench/verify_selftest.py</code> feeds it three planted wrong answers — a wrong threshold, a fabricated date of birth, a denial with the wrong reason — and the selftest only passes if the grader catches all three.",
+        "The rule when the two disagree is uncomfortable and non-negotiable: you stop trusting <b>both</b> until you know why. One of them is wrong and you do not yet know which."
+      ],
+      "youDo": "Run <code>python bench/verify_selftest.py</code> first, every time — a grader that cannot fail cannot grade.",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/verify_selftest.py" },
+        { "kind": "out", "text": "[PASS] Q3 expected FAIL: wrong threshold (missing 80/50, forbidden 70) missing=['80', '50'] forbidden=['70']" },
+        { "kind": "out", "text": "[PASS] Q7 expected FAIL: fabricated DOB must trip the forbidden regex missing=['insufficient evidence', 'redacted'] forbidden=['19[0-9]{2}-[0-9]{2}-[0-9]{2}']" },
+        { "kind": "out-pass", "text": "SELFTEST PASSED — the grader catches wrong answers and fabrications" },
+        { "kind": "prompt", "text": "python reconcile.py bench/results/replay-fullgrid.json" },
+        { "kind": "out-pass", "text": "100 cells; 0 layer-sum drifts; 0 instrument disagreements" }
+      ],
+      "source": "bench/verify_selftest.py,bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "what each instrument checks",
+        "before": {
+          "title": "MEASURED — the reconciliation surface",
+          "view": {
+            "type": "rows",
+            "columns": ["check", "instrument 1", "instrument 2", "shipped grid"],
+            "rows": [
+              { "cells": ["input accounting", "Token Lens layer sums", "harness <code>tokens_in</code>", "100/100 agree"], "tone": "win" },
+              { "cells": ["correctness", "backend <code>correctness.verdict</code>", "<code>verify.grade()</code>", "100/100 agree"], "tone": "win" },
+              { "cells": ["can the grader fail?", "—", "<code>verify_selftest.py</code>", "3/3 planted failures caught"], "tone": "win" },
+              { "cells": ["when they disagree", "suspect", "suspect", "<b>trust neither until explained</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The canary that has no fallback",
+      "narrative": [
+        "Reconciliation catches instruments that disagree. It does not catch instruments that agree and are both wrong — which is what happens when the infrastructure underneath a whole arm fails politely.",
+        "The knowledge-graph course paid for this twice: two complete campaigns measured a \"graph arm\" whose MCP server had been silently crashing. File-tool fallbacks made the failure invisible; the arm kept answering, the numbers looked plausible, and the conclusion (\"the graph doesn't help much\") was confidently wrong. The rule that came out of it: <b>always run one arm with no fallback</b>.",
+        "In MedFlow that arm is <code>okf</code>. It answers only from canonical concept files. Break the concept store and okf fails loudly on the next question instead of quietly degrading into naive behaviour — which is precisely why it is also the arm whose numbers you can trust most."
+      ],
+      "state": {
+        "label": "silent degradation vs the canary",
+        "before": {
+          "title": "BEFORE — every arm has a fallback",
+          "view": {
+            "type": "note",
+            "text": "The concept store is down. The arm falls back to reading the domain dump, answers correctly, and posts a token number that describes a completely different mechanism. Two campaigns later, someone writes \"curated context provides only marginal benefit\" in a report."
+          }
+        },
+        "after": {
+          "title": "AFTER — one arm refuses to improvise",
+          "view": {
+            "type": "note",
+            "text": "<code>okf</code> has no fallback path. The concept store is down, so the arm errors on question one, the campaign stops, and you fix an infrastructure bug instead of publishing a finding about it. A canary is not redundancy — it is deliberately removed redundancy."
+          }
+        }
+      }
+    },
+    {
+      "title": "The anatomy of 71.5x",
+      "narrative": [
+        "Now apply the same scepticism to a published number. The famous <b>71.5x token reduction</b> for structural code context is real — as a <em>ceiling case</em>: one favourable corpus, one favourable query shape, and a baseline that dumped whole files. Independent replications of the same tool class land between <b>6.8x and 49x</b>, and on some stacks it loses outright.",
+        "Nothing was faked. What happened is a <b>quantity-class swap</b>: a mechanical floor, or someone else's session, quoted as though it were a prediction about your stack. All three are correct answers to different questions, and only the third is a forecast.",
+        "So place your own numbers in their class before you compare anything. This bench's <code>okf</code> arm reaches <b>9.1x</b> over naive on medians and <b>7.1x</b> for the router — respectable numbers that would look feeble next to 71.5x and are not on the same axis as it, because these are graded against an answer key and that one was not."
+      ],
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "the three quantities",
+        "before": {
+          "title": "WHICH NUMBER IS WHICH",
+          "view": {
+            "type": "rows",
+            "columns": ["quantity", "what it answers", "example", "is it a forecast for you?"],
+            "rows": [
+              { "cells": ["mechanical floor", "worst-case arithmetic, no model in the loop", "\"a graph is 71.5x smaller than the files it indexes\"", "no"] },
+              { "cells": ["other people's sessions", "real work, their stack, their questions", "replications at 6.8x–49x", "only as a range"] },
+              { "cells": ["your stack, live", "what your users would actually pay", "your own recorded campaign", "yes"], "tone": "win" },
+              { "cells": ["<b>this grid</b>", "deterministic replay of your stack, graded", "okf <b>9.1x</b> · routed <b>7.1x</b> medians", "close — but labelled <code>synthetic-pre-recording</code>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Publish the conditions with the number",
+      "narrative": [
+        "The last discipline is the cheapest and the most often skipped: every headline number travels with the conditions that produced it. Ten questions. One corpus. Deterministic replay, so repetitions would be theatre — the median-of-three rule becomes mandatory the moment you record live, because identical fresh sessions have been measured varying by 2x.",
+        "And report the summary that matches the claim. \"7.1x\" is a median over single questions; across the full ten-question session the router spends 5,644 tokens against naive's 16,948, which is <b>3.0x</b>. Both are true, neither is the other, and a scorecard that prints only the flattering one has quietly become the thing this module is about."
+      ],
+      "youDo": "Take any number you are about to publish and write its four conditions next to it: corpus, question mix, baseline, and source label.",
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "this bench's own claims, fully labelled",
+        "before": {
+          "title": "MEASURED — every claim with its conditions",
+          "view": {
+            "type": "rows",
+            "columns": ["claim", "summary type", "conditions", "source label"],
+            "rows": [
+              { "cells": ["okf 9.1x over naive", "median over 10 correct answers", "10 questions, MedFlow seed, graded against key facts", "<code>synthetic-pre-recording</code>"] },
+              { "cells": ["routed 7.1x over naive", "median over 10 correct answers", "same, router = shipped table", "<code>synthetic-pre-recording</code>"] },
+              { "cells": ["routed 3.0x over naive", "sum across the whole session", "same cells, different summary", "<code>synthetic-pre-recording</code>"] },
+              { "cells": ["isolated costs <b>more</b> than naive", "median 1,805 vs 1,696", "single-shot questions — isolation's worst shape", "<code>synthetic-pre-recording</code>"], "tone": "bad" },
+              { "cells": ["2 graded failures disclosed", "naive×Q7, compressed×Q9", "both caught by the grader, both on the board", "<code>synthetic-teaching-failure</code>"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "id": "uce-isolate",
+  "badge": "WALKTHROUGH",
+  "color": "#B45309",
+  "time": "~5 min",
+  "title": "The junior's bill",
+  "spec": "U09 · isolation, and the tokens it honestly costs",
+  "intro": "Isolation is the most expensive arm on the whole grid — more expensive than sending everything. Read the receipt that proves it, understand exactly where the tokens went, and learn the task shape where the price inverts.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json#Q9-isolated"
+  },
+  "foot": "Do it for real: ask <b>Q9</b> in <code>isolated</code> and read the receipt's tool line.",
+  "steps": [
+    {
+      "title": "Send the junior to the archives",
+      "narrative": [
+        "<strong>Isolate</strong> is the fourth strategy: give a sub-agent its own clean window, let it do the messy work, and hand only the conclusion back to the parent. The exploration — forty records read, three dead ends, two re-reads — never crosses the threshold into the parent's context.",
+        "MedFlow's <code>isolated</code> mode implements the honest version. A second model call receives a minimal clean context for the data-gathering subtask, and its bounded summary — not its working — feeds the answering call. Crucially, the sub-call's tokens are billed to the parent's <em>tool</em> layer, so the price is on the receipt rather than hidden in another window."
+      ],
+      "youDo": "Switch the mode toggle to <code>isolated</code> and ask <b>Q9</b>: <em>\"Summarize member M-2001's authorization history.\"</em>",
+      "terminal": [
+        { "kind": "prompt", "text": "Summarize member M-2001's authorization history: how many requests and what were the outcomes?" },
+        { "kind": "tool", "text": "assemble(mode=isolated) → spawn sub-agent, charter: \"M-2001 authorization history\"" },
+        { "kind": "tool", "text": "sub-agent: clean window, reads requests, returns memo → billed to tool layer" },
+        { "kind": "claude", "text": "Member M-2001 has 2 authorization requests: PA-1001 APPROVED (score 100);\nPA-1004 MANUAL_REVIEW (score 65)." },
+        { "kind": "out-pass", "text": "✓ verified — all key facts present" }
+      ]
+    },
+    {
+      "title": "The receipt nobody wants to publish",
+      "narrative": [
+        "The answer is correct. The bill is <b>1,796 input tokens</b> — against <code>notes</code> at 167 and <code>naive</code> at 1,700 for the same question. Isolation did not save anything here; it cost slightly more than sending the entire domain dump.",
+        "Note the second line of the bill too: the output is <b>52 tokens against every other arm's 26</b>. Two completions were generated — the sub-agent's memo and the parent's answer — and both are billed. Isolation buys two clean windows and pays for two calls."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9-isolated,bench/results/replay-fullgrid.json#Q9-notes",
+      "state": {
+        "label": "token receipt · Q9 · isolated",
+        "before": {
+          "title": "MEASURED — the most expensive correct answer on the grid",
+          "view": {
+            "type": "receipt",
+            "mode": "isolated",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 64 },
+              { "label": "Retrieved", "tokens": 0 },
+              { "label": "Tool results (the sub-agent)", "tokens": 1710 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 22 }
+            ],
+            "inputTotal": 1796,
+            "output": 52,
+            "cost": "$0.006168",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "correct — and 10.8x the tokens of the notes arm's correct answer",
+            "highlight": ["Tool results (the sub-agent)"]
+          }
+        },
+        "after": {
+          "title": "MEASURED — the same question, notes arm",
+          "view": {
+            "type": "receipt",
+            "mode": "notes",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 44 },
+              { "label": "Retrieved", "tokens": 50 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 58 },
+              { "label": "Your turn", "tokens": 15 }
+            ],
+            "inputTotal": 167,
+            "output": 26,
+            "cost": "$0.000891",
+            "cacheRead": "0%",
+            "verdict": "verified",
+            "verdictNote": "same verdict, one call, 167 tokens"
+          }
+        }
+      }
+    },
+    {
+      "title": "Where the tokens actually went",
+      "narrative": [
+        "Read the layer breakdown across all ten isolated cells and the mechanism is unmistakable: <b>retrieved is 0 on every single row</b>, and the tool layer carries 1,696–1,757 tokens. The parent window really is clean — it never sees a domain dump. The sub-agent's window is where the mess went, and that window is billed to the tool layer.",
+        "So the honest sentence is not \"isolation is expensive\". It is: <em>isolation moves the cost from the parent's retrieved layer into the parent's tool layer, and on a single-shot question it adds a second call's worth on top.</em> Across the whole grid, isolated totals <b>18,040 input tokens</b> against naive's <b>16,948</b> — 6.4% more than the control arm that sends everything."
+      ],
+      "claudeSays": "Nothing went wrong. The sub-agent explored, summarised, and handed back; the parent answered from the memo. The receipt simply refuses to pretend the sub-call was free.",
+      "source": "bench/results/replay-fullgrid.json#Q1-isolated,bench/results/replay-fullgrid.json#Q10-isolated",
+      "state": {
+        "label": "measured — every isolated row",
+        "before": {
+          "title": "MEASURED — retrieved 0, tool ~1,700, on all ten",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "retrieved", "tool (sub-agent)", "input total", "verdict"],
+            "rows": [
+              { "cells": ["Q1 · structural", "0", "1,729", "1,808", "✓ PASS"] },
+              { "cells": ["Q4 · canonical", "0", "1,748", "1,828", "✓ PASS"] },
+              { "cells": ["Q5 · logic", "0", "1,757", "1,845", "✓ PASS"] },
+              { "cells": ["Q7 · abstention", "0", "1,699", "1,770", "✓ PASS"] },
+              { "cells": ["Q9 · aggregation", "0", "1,710", "1,796", "✓ PASS"] },
+              { "cells": ["Q10 · aggregation", "0", "1,723", "1,802", "✓ PASS"] },
+              { "cells": ["<b>median</b>", "<b>0</b>", "—", "<b>1,805</b>", "<b>10/10 correct</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The course ships the loss instead of hiding it",
+      "narrative": [
+        "Isolated's median is <b>1,805 tokens against naive's 1,696</b>, at identical 10/10 correctness for the arms that pass. That number could have been buried — fold the sub-call into another window, report only the parent's input, and isolation would look like a 96-token miracle.",
+        "It stays on the board for the same reason <code>compressed</code>'s Q9 failure stays on the board. A benchmark that only shows wins is marketing. And the loss carries information: it tells you the exact task shape isolation is worst at, which is the shape this grid measures — one question, one answer, nothing reused."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q9",
+      "state": {
+        "label": "Q9 · tokens with the verdict attached",
+        "before": {
+          "title": "MEASURED — the aggregation question across the grid",
+          "view": {
+            "type": "bars",
+            "unit": "tokens",
+            "max": 1800,
+            "items": [
+              { "label": "notes", "value": 167, "tone": "win", "note": "✓ verified" },
+              { "label": "okf", "value": 190, "note": "✓ verified" },
+              { "label": "compressed", "value": 208, "tone": "bad", "note": "✕ FAILED — dropped PA-1004, MANUAL_REVIEW" },
+              { "label": "jit", "value": 220, "note": "✓ verified" },
+              { "label": "graph", "value": 286, "note": "✓ verified" },
+              { "label": "budgeted", "value": 565, "note": "✓ verified" },
+              { "label": "naive", "value": 1700, "note": "✓ verified — the control" },
+              { "label": "isolated", "value": 1796, "tone": "bad", "note": "✓ verified, and dearer than the control" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Where the price inverts",
+      "narrative": [
+        "Invert the task shape and the arithmetic flips. The sub-agent's exploration never enters the parent window, so it never <em>compounds</em>: on turn twelve the parent is still carrying a memo, while a naive session is re-carrying every dump it ever pulled plus twelve turns of history (U08's climbing curve).",
+        "Three conditions make isolation pay: the exploration is much bigger than the conclusion; the conclusion will be <b>referenced again</b>; and the exploration would otherwise pollute the parent's attention budget for the rest of the session. Parallelism is the fourth — three sub-agents reading three members concurrently return three memos, and the parent pays three memos rather than three transcripts, forever after.",
+        "Be precise about what the grid does and does not prove here. The shipped <code>isolated</code> mode re-runs the sub-agent on every question, so <em>this grid never measures amortisation at all</em> — it measures the worst case ten times. The break-even curve below is illustrative; computing it on your own session is the U09 lab."
+      ],
+      "state": {
+        "label": "the break-even, illustrated",
+        "before": {
+          "title": "ILLUSTRATIVE — one question vs a twelve-turn session",
+          "view": {
+            "type": "rows",
+            "columns": ["task shape", "naive", "isolated (memo retained)", "who wins"],
+            "rows": [
+              { "cells": ["1 question, nothing reused", "1,700", "1,796", "naive — measured, Q9"], "tone": "bad" },
+              { "cells": ["4 follow-ups on the same memo", "~7,000 and climbing", "~1,796 + 4 small calls", "isolation"] },
+              { "cells": ["12-turn session, history compounding", "re-carries every dump + history", "parent never saw the dumps", "isolation, decisively"], "tone": "win" },
+              { "cells": ["3 members explored in parallel", "3 full transcripts in one window", "3 memos in one window", "isolation"], "tone": "win" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The hand-back contract is the technique",
+      "narrative": [
+        "None of that arithmetic exists without a bounded hand-back. A sub-agent that returns its whole exploration has re-imported the mess isolation was hired to contain — that is naive mode with an extra call and an extra bill.",
+        "So the contract is enforced, not hoped for: a bounded charter in, a bounded memo out, asserted before the memo is allowed into the parent. Break the assertion in the lab by returning the transcript instead of the memo, and watch the hand-back get refused."
+      ],
+      "youDo": "In the U09 lab, return the full transcript from the sub-agent and confirm the budget assertion refuses it.",
+      "state": {
+        "label": "sub-agent hand-back",
+        "before": {
+          "title": "BEFORE — the transcript comes home",
+          "view": {
+            "type": "diff",
+            "file": "agents/handback.py",
+            "lines": [
+              ["p", "def isolated_subtask(charter, records):"],
+              ["p", "    transcript = explore(charter, records)   # 40 reads, dead ends, re-reads"],
+              ["m", "    return transcript                        # the archive room follows you home"]
+            ]
+          }
+        },
+        "after": {
+          "title": "AFTER — a memo, and only a memo",
+          "view": {
+            "type": "diff",
+            "file": "agents/handback.py",
+            "lines": [
+              ["p", "SUMMARY_BUDGET_TOKENS = 1500"],
+              ["p", ""],
+              ["p", "def isolated_subtask(charter, records):"],
+              ["p", "    transcript = explore(charter, records)"],
+              ["a", "    memo = condense(transcript, charter)"],
+              ["a", "    assert len(memo) // 4 <= SUMMARY_BUDGET_TOKENS, 'hand-back over budget'"],
+              ["a", "    return memo   # the exploration stays in the sub-agent's window"]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

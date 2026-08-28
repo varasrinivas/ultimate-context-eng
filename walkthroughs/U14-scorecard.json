@@ -1,0 +1,214 @@
+{
+  "id": "uce-scorecard",
+  "badge": "WALKTHROUGH",
+  "color": "#0F766E",
+  "time": "~6 min",
+  "title": "The scorecard you can defend",
+  "spec": "U14 · the capstone run, read the way a professional reads it",
+  "intro": "Gates, then a hundred graded cells, then one page of numbers that each survive the question \"how do you know?\" — including the two that are failures and stay on the card.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json"
+  },
+  "foot": "Do it for real: fresh clone → seed gate → grader selftest → app tests → full campaign → reconcile → route.",
+  "steps": [
+    {
+      "title": "Gates before trust",
+      "narrative": [
+        "The capstone is a protocol, not a number. Each step is gated by the one before it, and the order is the point: verify the source of truth, then prove the grader can fail, then prove the app agrees with both — <em>and only then</em> measure anything.",
+        "Skipping a gate because \"nothing changed\" is the failure mode this whole course has been about. The seed contract takes under a second to verify; the campaign that follows it takes a hundred graded calls. Cheap check first, always."
+      ],
+      "youDo": "Run the three gates on a fresh clone before you record a single token.",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/keys/generate_keys.py" },
+        { "kind": "out-pass", "text": "contract consistent (10 determinations verified); 10 keys -> keys.json" },
+        { "kind": "prompt", "text": "python bench/verify_selftest.py" },
+        { "kind": "out-pass", "text": "SELFTEST PASSED — the grader catches wrong answers and fabrications" },
+        { "kind": "prompt", "text": "cd app/api && ./mvnw test" },
+        { "kind": "out-pass", "text": "BUILD SUCCESS — golden determinations, per-mode reconciliation, abstention, fidelity" },
+        { "kind": "gate", "text": "⏸  three gates green — the instrument is now allowed to measure" }
+      ],
+      "source": "bench/verify_selftest.py",
+      "state": {
+        "label": "the protocol",
+        "before": {
+          "title": "SIX STEPS, EACH GATED BY THE LAST",
+          "view": {
+            "type": "rows",
+            "columns": ["#", "step", "command", "gate condition"],
+            "rows": [
+              { "cells": ["1", "contract", "<code>bench/keys/generate_keys.py</code>", "10 determinations verified"] },
+              { "cells": ["2", "grader", "<code>bench/verify_selftest.py</code>", "catches all planted failures"] },
+              { "cells": ["3", "app", "<code>./mvnw test</code>", "golden determinations green"] },
+              { "cells": ["4", "campaign", "<code>bench/run_campaign.py --replay</code>", "100 cells, no errors"] },
+              { "cells": ["5", "reconcile", "your U13 reconciler", "0 layer drift, 0 disagreements"] },
+              { "cells": ["6", "route", "your U12 derivation", "re-derived from <b>this</b> run's grid"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "A hundred graded cells",
+      "narrative": [
+        "Ten questions across five classes — structural, canonical, logic, abstention, aggregation — times ten modes. Every cell is one POST to <code>/api/copilot/ask</code>, graded against the answer key by key-fact substrings and forbidden regexes. No cell is exempt and no cell is dropped for looking bad.",
+        "Replay mode is deterministic, so repetitions are theatre here; the moment you record live, medians-of-three become mandatory and every row's <code>source</code> label changes with it."
+      ],
+      "youDo": "Run the campaign across all ten modes and let it finish — including the arms you expect to lose.",
+      "terminal": [
+        { "kind": "prompt", "text": "python bench/run_campaign.py --modes naive,budgeted,compressed,cached,jit,graph,okf,notes,isolated,routed --replay" },
+        { "kind": "out", "text": " Q7 naive      r0   1,686 tok  FAIL (SAVINGS VOID)" },
+        { "kind": "out", "text": " Q9 compressed r0     208 tok  FAIL (SAVINGS VOID)" },
+        { "kind": "out", "text": " Q9 routed     r0   1,796 tok  PASS " },
+        { "kind": "out-pass", "text": "100 cells graded · no backend/harness grading mismatches" }
+      ],
+      "source": "bench/run_campaign.py"
+    },
+    {
+      "title": "Line 1 and Line 2 — tokens, at correctness",
+      "narrative": [
+        "Here is the whole grid as one table, and it has two columns because a token number without a verdict is a menu without allergen labels. Read the correctness column first, every time.",
+        "<code>okf</code> holds a <b>186-token median at 10/10</b> — 9.1x under naive. <code>notes</code> is close behind at 197.5. <code>compressed</code> posts a tempting 231 median and <b>9/10</b>, which disqualifies it from the class it failed. And <code>naive</code>, the control, is not merely expensive at 1,696 — it is the only arm that fabricated an answer.",
+        "The line that does not fit the marketing story stays on the card: <code>isolated</code> costs <b>1,805 median, more than naive's 1,696</b>, at a perfect 10/10. That is isolation priced on single-shot questions, which is its worst shape. Labelled, not hidden."
+      ],
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "the mastery scorecard · all ten arms",
+        "before": {
+          "title": "MEASURED — correct count first, median second",
+          "view": {
+            "type": "rows",
+            "columns": ["mode", "correct", "median tokens (correct only)", "vs naive", "note"],
+            "rows": [
+              { "cells": ["okf", "10/10", "<b>186</b>", "9.1x", "cheapest arm at full correctness"], "tone": "win" },
+              { "cells": ["notes", "10/10", "197.5", "8.6x", "facts kept outside the window"], "tone": "win" },
+              { "cells": ["routed", "10/10", "239", "7.1x", "the shipped router"], "tone": "win" },
+              { "cells": ["jit", "10/10", "251", "6.8x", "fetch-on-demand"] },
+              { "cells": ["compressed", "<b>9/10</b>", "231", "—", "<b>savings void on Q9</b>"], "tone": "bad" },
+              { "cells": ["graph", "10/10", "443.5", "3.8x", "overpriced on canonical questions"] },
+              { "cells": ["budgeted", "10/10", "560", "3.0x", "evicts records to a cap"] },
+              { "cells": ["cached", "10/10", "731", "2.3x", "prefix stability, not size"] },
+              { "cells": ["naive", "<b>9/10</b>", "1,696", "1.0x", "<b>the control — and it fabricated</b>"], "tone": "bad" },
+              { "cells": ["isolated", "10/10", "1,805", "0.94x", "correct, and dearer than the control"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The two failures stay on the card",
+      "narrative": [
+        "Two of the hundred cells failed, and a scorecard that omitted them would be worth nothing. Both were caught mechanically, neither by reading the answers and feeling uneasy.",
+        "<b>naive × Q7</b>: asked for member M-2003's date of birth — a field the seed marks <code>_redacted</code> — and it produced <em>\"born on 1984-06-17 according to the member record\"</em>. Graded by shape: the forbidden regex <code>19[0-9]{2}-[0-9]{2}-[0-9]{2}</code> matched, and the required phrases <em>insufficient evidence</em> and <em>redacted</em> were absent. <b>1,686 tokens</b> — the most context, the most confident, the least true.",
+        "<b>compressed × Q9</b>: summarised M-2001's history into <em>\"PA-1001 was APPROVED. Her history shows consistent approvals\"</em>, dropping <code>PA-1004</code> and <code>MANUAL_REVIEW</code>. <b>208 tokens</b>, an 88% saving, voided. The two failures are different diseases — one added a fact that did not exist, one removed one that did — and the same grader caught both."
+      ],
+      "source": "bench/results/teaching-failures.json#Q7-naive,bench/results/teaching-failures.json#Q9-compressed",
+      "state": {
+        "label": "disclosed failures · 2 of 100 cells",
+        "before": {
+          "title": "MEASURED — naive × Q7, a fabrication",
+          "view": {
+            "type": "receipt",
+            "mode": "naive",
+            "question": "Q7 · M-2003's date of birth",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 1612 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 9 }
+            ],
+            "inputTotal": 1686,
+            "output": 28,
+            "cost": "$0.005478",
+            "cacheRead": "0%",
+            "verdict": "failed",
+            "verdictNote": "forbidden pattern hit · missing \"insufficient evidence\", \"redacted\""
+          }
+        },
+        "after": {
+          "title": "MEASURED — compressed × Q9, an omission",
+          "view": {
+            "type": "receipt",
+            "mode": "compressed",
+            "question": "Q9 · summarize M-2001's history",
+            "layers": [
+              { "label": "System", "tokens": 65 },
+              { "label": "Retrieved", "tokens": 120 },
+              { "label": "Tool results", "tokens": 0 },
+              { "label": "History", "tokens": 0 },
+              { "label": "Your turn", "tokens": 23 }
+            ],
+            "inputTotal": 208,
+            "output": 26,
+            "cost": "$0.001014",
+            "cacheRead": "0%",
+            "verdict": "failed",
+            "verdictNote": "missing: PA-1004 · MANUAL_REVIEW"
+          }
+        }
+      }
+    },
+    {
+      "title": "Lines 3, 4 and 5 — truth, freshness, provenance",
+      "narrative": [
+        "<b>Line 3 · truth.</b> Both abstention traps were answered correctly by the router at <b>157 and 152 tokens</b>: a refusal that names the redaction on Q7, and a refusal that says no such note exists on Q8. Abstention-correct is reported next to tokens and never instead of them — a gate tuned too tight refuses questions it could have answered, and that shows up here too.",
+        "<b>Line 4 · freshness.</b> The contract gate verified 10 determinations before the campaign started, and the reconciler found <b>0 layer-sum drifts and 0 instrument disagreements across 100 cells</b>. Both timestamps go on the card: a number is only as fresh as the last gate that ran before it.",
+        "<b>Line 5 · provenance.</b> Every cell in this run carries <code>synthetic-pre-recording</code>, so every headline is a deterministic-replay quantity, not a live forecast. And report the session summary alongside the median: routed spends <b>5,644 tokens against naive's 16,948</b> across the ten-question session — <b>3.0x</b>, not the 7.1x the medians suggest — and <b>$0.0246 against $0.0575</b>, only 2.3x, because output tokens are priced higher and the router's two isolated cells generate two completions each."
+      ],
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "lines 3–5, defended",
+        "before": {
+          "title": "MEASURED — the rest of the scorecard",
+          "view": {
+            "type": "rows",
+            "columns": ["line", "claim", "evidence"],
+            "rows": [
+              { "cells": ["3 · truth", "abstention correct on both traps", "routed Q7 157 ✓ · Q8 152 ✓ — refusals naming the redaction and the missing note"], "tone": "win" },
+              { "cells": ["3 · truth", "fidelity held on aggregation", "routed Q9/Q10 ✓ — <code>compressed</code> ineligible after its Q9 FAIL"], "tone": "win" },
+              { "cells": ["4 · freshness", "contract verified before measuring", "<code>generate_keys.py</code>: 10 determinations, exit 0"] },
+              { "cells": ["4 · freshness", "instruments reconciled", "100 cells · 0 layer drift · 0 verdict disagreements"], "tone": "win" },
+              { "cells": ["5 · provenance", "quantity class named", "<code>synthetic-pre-recording</code> on every row — replay, not live"] },
+              { "cells": ["5 · provenance", "session summary, not just medians", "5,644 vs 16,948 tokens (3.0x) · $0.0246 vs $0.0575 (2.3x)"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "You now excel when…",
+      "narrative": [
+        "Six competencies, each self-graded with a pointer into results you produced. Six checked boxes and zero file paths is the anecdote trap wearing a graduation gown — every claim below has to end in something a reviewer can open.",
+        "And every capstone writeup needs a <b>seams section</b>: at least two places where your run's stages meet and could fail without raising an error, plus the mechanical check that now guards each. This course's own build supplies the pattern — a harness reading a wrapper key that wasn't there and recording 100 cells of zeros; an arm measured for two campaigns against a silently crashed server; UI mirrors hand-copied from the seed. Finding no seams does not mean there are none. It means your run has not failed yet."
+      ],
+      "youDo": "Write the six lines, each ending in a file path and a cell reference from your own campaign.",
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "the six-competency rubric",
+        "before": {
+          "title": "EACH BOX NEEDS A POINTER, NOT A FEELING",
+          "view": {
+            "type": "rows",
+            "columns": ["competency", "you can…", "evidence from this run"],
+            "rows": [
+              { "cells": ["① Diagnose", "name the dominant layer in any receipt and the strategy family that attacks it", "naive Q1: retrieved 1,612 of 1,694 — a SELECT problem, not a COMPRESS one"] },
+              { "cells": ["② Four strategies", "sort all ten arms into write / select / compress / isolate", "and explain the two that resist the taxonomy"] },
+              { "cells": ["③ Static surface", "say what cached mode's clean prefix buys and what edit would zero it", "cached median 731 — prefix stability, not size"] },
+              { "cells": ["④ Long horizons", "pick compaction, notes or isolation from the task shape", "isolated 1,805 median: what that price buys, and when it inverts"] },
+              { "cells": ["⑤ Govern truth", "show a fabrication caught by shape and staleness caught by a gate", "Q7 forbidden-regex hit · <code>generate_keys.py</code> naming PA-1001"] },
+              { "cells": ["⑥ Measure", "put any published number in its quantity class", "71.5x ceiling vs 6.8–49x replications vs this bench's 9.1x"] }
+            ]
+          }
+        },
+        "after": {
+          "title": "THE ONE-SENTENCE VERSION",
+          "view": {
+            "type": "note",
+            "text": "Tokens fell 7.1x on medians and 3.0x across the session, <b>at 100% key-fact correctness</b>, with both abstention traps refused correctly, fidelity held on aggregation, two failures disclosed rather than dropped, and every number labelled with the quantity class it belongs to. Any line of that sentence can be opened and checked — which is the only definition of mastery this course accepts."
+          }
+        }
+      }
+    }
+  ]
+}

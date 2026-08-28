@@ -1,0 +1,207 @@
+{
+  "id": "uce-router",
+  "badge": "WALKTHROUGH",
+  "color": "#8A6D2F",
+  "time": "~6 min",
+  "title": "Reading the router off your own grid",
+  "spec": "U12 · cheapest arm that passes, per question class",
+  "intro": "Build the routing table the way a triage desk is built: class by class, cheapest arm that passes the answer key — never the cheapest arm. Then read the shipped router's real row, including the two cells where it pays 1,800 tokens.",
+  "provenance": {
+    "kind": "measured",
+    "source": "bench/results/replay-fullgrid.json"
+  },
+  "foot": "Do it for real: ask all ten presets in <code>routed</code> mode and read the delegate each receipt names.",
+  "steps": [
+    {
+      "title": "The rule, before any numbers",
+      "narrative": [
+        "A hospital's triage desk does not send every patient to the cheapest department, and a unit currently failing its safety audit takes no patients at all — however short its queue. The router obeys the same two-part rule: <b>among the arms that pass the answer key on this question class, take the cheapest one.</b>",
+        "Both halves matter, and the order matters. Correctness is the filter; price is the sort. Reverse them and you have built a machine for shipping cheap wrong answers at scale."
+      ],
+      "youDo": "Before looking at any token number, list which arms passed every question in the class you are routing.",
+      "state": {
+        "label": "the routing contract",
+        "before": {
+          "title": "TWO STEPS, IN THIS ORDER",
+          "view": {
+            "type": "rows",
+            "columns": ["step", "input", "output"],
+            "rows": [
+              { "cells": ["1 · filter", "per-class verdicts from the graded grid", "the eligible set — 100% correct on that class"] },
+              { "cells": ["2 · sort", "input tokens of the eligible arms only", "the delegate for that class"] },
+              { "cells": ["<b>never</b>", "grid-wide medians or averages", "<b>an average hides the class it fails</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Canonical and abstention: the easy classes",
+      "narrative": [
+        "<b>Canonical</b> questions (Q3 thresholds, Q4 eligibility rule) ask the system to recite policy. Every arm passes, so this is a pure price sort — and <code>okf</code> wins at <b>186 tokens on both</b>, because a curated concept file about policy is smaller than any retrieval over the domain. The instructive loser is <code>graph</code>: 840 and 1,054 tokens, five times okf's price, because traversing a relationship graph to reach a constant is work that a constant does not need.",
+        "<b>Abstention</b> (Q7 a redacted DOB, Q8 a note that does not exist) is where the filter first bites. <code>naive</code> is the cheapest-looking large arm at 1,686 on Q7 — and it <b>FAILED</b>, fabricating a birthdate. It is out of the eligible set at any price. Among the rest, <code>okf</code> at 157/152 and <code>notes</code> at 157/135 are within a few tokens of each other."
+      ],
+      "source": "bench/results/replay-fullgrid.json#Q3,bench/results/replay-fullgrid.json#Q4,bench/results/replay-fullgrid.json#Q7,bench/results/replay-fullgrid.json#Q8",
+      "state": {
+        "label": "measured — two classes, eligible arms only",
+        "before": {
+          "title": "MEASURED — canonical (Q3 · Q4)",
+          "view": {
+            "type": "rows",
+            "columns": ["arm", "Q3", "Q4", "verdicts", "eligible?"],
+            "rows": [
+              { "cells": ["okf", "<b>186</b>", "<b>186</b>", "✓ ✓", "yes — cheapest"], "tone": "win" },
+              { "cells": ["notes", "231", "143", "✓ ✓", "yes"] },
+              { "cells": ["compressed", "234", "175", "✓ ✓", "yes"] },
+              { "cells": ["jit", "285", "145", "✓ ✓", "yes"] },
+              { "cells": ["graph", "840", "1,054", "✓ ✓", "yes, and wildly overpriced here"], "tone": "bad" },
+              { "cells": ["naive", "1,696", "1,696", "✓ ✓", "yes, but why"] }
+            ]
+          }
+        },
+        "after": {
+          "title": "MEASURED — abstention (Q7 · Q8)",
+          "view": {
+            "type": "rows",
+            "columns": ["arm", "Q7", "Q8", "verdicts", "eligible?"],
+            "rows": [
+              { "cells": ["notes", "157", "<b>135</b>", "✓ ✓", "yes"], "tone": "win" },
+              { "cells": ["okf", "157", "152", "✓ ✓", "yes"], "tone": "win" },
+              { "cells": ["jit", "211", "188", "✓ ✓", "yes"] },
+              { "cells": ["compressed", "206", "193", "✓ ✓", "yes"] },
+              { "cells": ["naive", "1,686", "1,688", "<b>✕ ✓</b>", "<b>no — fabricated a DOB on Q7</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Aggregation: the cheap arm is disqualified",
+      "narrative": [
+        "Q9 asks for M-2001's authorization history. <code>compressed</code> answers it for <b>208 tokens</b> — the cheapest number in the class — and its abstract dropped <code>PA-1004</code> and <code>MANUAL_REVIEW</code>, replacing them with <em>\"her history shows consistent approvals\"</em>. Graded: <b>✕ FAILED</b>.",
+        "So compressed is ineligible for aggregation. Not deprioritised, not penalised — <b>ineligible</b>, at any price, until it is fixed and re-measured. That is the whole rule doing its work: a saving that changes the answer is a discount on a defect. In a prior-authorization system, \"consistent approvals\" about a member with a pending manual review is not a rounding error; it is the wrong clinical picture."
+      ],
+      "youDo": "Open the Compare drawer on Q9 with <code>compressed</code> in one column, and read the missing-facts list under the verdict.",
+      "source": "bench/results/teaching-failures.json#Q9-compressed,bench/results/replay-fullgrid.json#Q9,bench/results/replay-fullgrid.json#Q10",
+      "state": {
+        "label": "measured — aggregation (Q9 · Q10)",
+        "before": {
+          "title": "MEASURED — who is still on the board after grading",
+          "view": {
+            "type": "rows",
+            "columns": ["arm", "Q9", "Q10", "verdicts", "eligible for aggregation?"],
+            "rows": [
+              { "cells": ["compressed", "<b>208</b>", "237", "<b>✕ ✓</b>", "<b>no — dropped PA-1004, MANUAL_REVIEW</b>"], "tone": "bad" },
+              { "cells": ["notes", "167", "262", "✓ ✓", "yes"], "tone": "win" },
+              { "cells": ["okf", "190", "184", "✓ ✓", "yes"], "tone": "win" },
+              { "cells": ["jit", "220", "316", "✓ ✓", "yes"] },
+              { "cells": ["graph", "286", "500", "✓ ✓", "yes"] },
+              { "cells": ["budgeted", "565", "559", "✓ ✓", "yes"] },
+              { "cells": ["naive", "1,700", "1,694", "✓ ✓", "yes"] },
+              { "cells": ["isolated", "1,796", "1,802", "✓ ✓", "yes — and the priciest arm on the grid"] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "The table that actually ships",
+      "narrative": [
+        "The router in this repo is not a heuristic hidden in a prompt — it is a five-line switch you can read. <code>ContextAssembler.route()</code> classifies the question, then maps the class to a delegate; the receipt header names that delegate (<code>ROUTED:OKF</code>, <code>ROUTED:ISOLATED</code>) so every routed answer is traceable to a decision you can argue with.",
+        "Notice what kind of table this is. It maps each class to the arm whose <em>design</em> matches the class shape: a graph for structure, a canonical file for policy recital, a compressor for reasoning chains, a sub-agent for gather-everything aggregation. That is a defensible way to build a first table. It is also a claim — and the grid is where claims get priced."
+      ],
+      "source": "app/api/src/main/java/com/medflow/copilot/context/ContextAssembler.java",
+      "state": {
+        "label": "app/api/.../context/ContextAssembler.java",
+        "before": {
+          "title": "MEASURED — the shipped routing table, verbatim",
+          "view": {
+            "type": "diff",
+            "file": "app/api/src/main/java/com/medflow/copilot/context/ContextAssembler.java",
+            "lines": [
+              ["p", "public Mode route(String q) {"],
+              ["p", "    return switch (classify(q)) {"],
+              ["p", "        case \"structural\"  -> Mode.GRAPH;"],
+              ["p", "        case \"canonical\"   -> Mode.OKF;"],
+              ["p", "        case \"abstention\"  -> Mode.OKF;"],
+              ["p", "        case \"aggregation\" -> Mode.ISOLATED;"],
+              ["p", "        default            -> Mode.COMPRESSED;  // logic"],
+              ["p", "    };"],
+              ["p", "}"]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Price the shipped table against the derivation",
+      "narrative": [
+        "Now put the two tables side by side: the shipped shape-matched one, and the one you get by mechanically taking the cheapest arm that passes each class. They agree on canonical and land within a few tokens on abstention. They diverge on the other three.",
+        "The biggest gap is aggregation: <b>isolated at 1,796/1,802 where okf passed both at 190/184</b> — about 1,600 tokens per question. Some of that gap is the honest price of caution: aggregation is the one class where a cheap arm was caught dropping a load-bearing fact, and a sub-agent that gathers in a clean window is a structurally safer default for questions beyond these ten. But caution is a choice with a bill, and the discipline is to publish the bill rather than describe the choice as optimal.",
+        "The rule survives either way: <em>both</em> tables route aggregation away from compressed. Where they differ is only in how much margin you buy above the eligibility line."
+      ],
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "shipped delegate vs cheapest eligible",
+        "before": {
+          "title": "MEASURED — the delta, class by class",
+          "view": {
+            "type": "rows",
+            "columns": ["class", "shipped delegate", "its cells", "cheapest eligible", "its cells"],
+            "rows": [
+              { "cells": ["canonical", "okf", "186 · 186", "okf", "186 · 186"], "tone": "win" },
+              { "cells": ["abstention", "okf", "157 · 152", "notes", "157 · 135"] },
+              { "cells": ["structural", "graph", "450 · 437", "notes", "141 · 232"] },
+              { "cells": ["logic", "compressed", "247 · 231", "okf", "194 · 183"] },
+              { "cells": ["aggregation", "isolated", "<b>1,796 · 1,802</b>", "okf", "<b>190 · 184</b>"], "tone": "bad" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Routed's real row — medians and totals disagree",
+      "narrative": [
+        "Here is the shipped router's actual grid row, ten cells, no editing: <b>450 · 437 · 186 · 186 · 247 · 231 · 157 · 152 · 1,796 · 1,802</b>, all ten ✓ PASS. The median is <b>239 tokens against naive's 1,696</b> — a <b>7.1x</b> saving at 100% correctness, and the headline the course quotes.",
+        "Now the number that headline hides. Summed across the ten-question session, routed spends <b>5,644 tokens against naive's 16,948</b> — <b>3.0x</b>, not 7.1x. The two aggregation cells are 64% of the router's entire session bill. A median is a fine summary of a typical question and a poor summary of a session, and the honest scorecard reports both.",
+        "Last: the routing table is itself a derived fact, so U11's law applies to it. Re-measure the grid — new seed, new mode implementation, new model — and re-derive the table, or the router keeps optimising for a world that no longer exists."
+      ],
+      "youDo": "Ask all ten presets in <code>routed</code> mode and add up the session strip; compare the total to the median you were quoted.",
+      "source": "bench/results/replay-fullgrid.json",
+      "state": {
+        "label": "routed · all ten cells",
+        "before": {
+          "title": "MEASURED — the router's row",
+          "view": {
+            "type": "rows",
+            "columns": ["question", "class", "delegate", "tokens", "verdict"],
+            "rows": [
+              { "cells": ["Q1", "structural", "graph", "450", "✓ PASS"] },
+              { "cells": ["Q2", "structural", "graph", "437", "✓ PASS"] },
+              { "cells": ["Q3", "canonical", "okf", "186", "✓ PASS"], "tone": "win" },
+              { "cells": ["Q4", "canonical", "okf", "186", "✓ PASS"], "tone": "win" },
+              { "cells": ["Q5", "logic", "compressed", "247", "✓ PASS"] },
+              { "cells": ["Q6", "logic", "compressed", "231", "✓ PASS"] },
+              { "cells": ["Q7", "abstention", "okf", "157", "✓ PASS"], "tone": "win" },
+              { "cells": ["Q8", "abstention", "okf", "152", "✓ PASS"], "tone": "win" },
+              { "cells": ["Q9", "aggregation", "isolated", "<b>1,796</b>", "✓ PASS"], "tone": "bad" },
+              { "cells": ["Q10", "aggregation", "isolated", "<b>1,802</b>", "✓ PASS"], "tone": "bad" }
+            ]
+          }
+        },
+        "after": {
+          "title": "MEASURED — two summaries of the same row",
+          "view": {
+            "type": "rows",
+            "columns": ["summary", "routed", "naive", "ratio"],
+            "rows": [
+              { "cells": ["median over correct answers", "239", "1,696", "<b>7.1x</b>"], "tone": "win" },
+              { "cells": ["sum across the ten-question session", "5,644", "16,948", "<b>3.0x</b>"] },
+              { "cells": ["correctness", "10/10", "9/10 (Q7 fabricated)", "the only column that gates the others"] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

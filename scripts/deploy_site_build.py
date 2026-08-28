@@ -103,44 +103,16 @@ for src, dst in [
     dst.write_text(t, encoding="utf-8")
     print(f"{dst.relative_to(OUT)}: {n} links rewritten")
 
-# ---- landing: two new cards + color vars -----------------------------------
-landing = (SCRATCH / "landing.html").read_text(encoding="utf-8")
-assert "--kg:" not in landing
-landing = landing.replace("--multisdk:", "--kg: #8B5CF6; --uce: #2e6b8a; --multisdk:", 1)
-
-CARDS = '''
-  <a href="courses/knowledge-graph/index.html" class="course-card" style="--card-color: var(--kg)">
-    <div class="card-icon">🕸️</div>
-    <div class="card-tag">New · Applied Pillar</div>
-    <div class="card-title">Knowledge Graphs for AI Agents</div>
-    <div class="card-desc">From RAG limits to self-updating codebase brains — structural graphs (tree-sitter, Graphify), Google's Open Knowledge Format, MCP serving, and honest multi-arm token benchmarks measured on real repositories.</div>
-    <div class="card-meta">
-      <span>14 modules</span>
-      <span>6 tracks</span>
-      <span>2 capstones</span>
-      <span>Intermediate–Advanced</span>
-    </div>
-  </a>
-
-  <a href="courses/ultimate-context-eng/index.html" class="course-card" style="--card-color: var(--uce)">
-    <div class="card-icon">🧾</div>
-    <div class="card-tag">New · Synthesis Course</div>
-    <div class="card-title">Ultimate Context Engineering</div>
-    <div class="card-desc">Master the discipline on an app that shows its tokens — MedFlow Copilot's Token Lens itemizes every AI call by layer, cost, and correctness. Ten strategies, thirty labs, and one law: savings only count when the answer is right.</div>
-    <div class="card-meta">
-      <span>15 modules</span>
-      <span>5 tracks</span>
-      <span>30 labs</span>
-      <span>All levels</span>
-    </div>
-  </a>
-'''
-# insert after the context-engineering card's closing </a>
-i = landing.index('href="courses/context-engineering/index.html"')
-close = landing.index("</a>", i) + len("</a>")
-landing = landing[:close] + "\n" + CARDS + landing[close:]
-(OUT / "index.html").write_text(landing, encoding="utf-8")
-print("landing: 2 cards + 2 color vars added")
+# ---- landing ---------------------------------------------------------------
+# The catalog landing page is no longer generated here. Its source of truth is
+# learnings-hub/agenticai/index.html (grouped tracks + learning path), deployed
+# separately to the bucket root. Copy it in so dist/ is a faithful preview.
+LANDING = Path("D:/work/ai-workspace/tutorials/repo/learnings-hub/agenticai/index.html")
+if LANDING.exists():
+    shutil.copy(LANDING, OUT / "index.html")
+    print("landing: copied from learnings-hub/agenticai (edit it there)")
+else:
+    print("landing: source not found, skipped")
 
 files = sorted(p.relative_to(OUT) for p in OUT.rglob("*") if p.is_file())
 print(f"\ndist total: {len(files)} files")

@@ -82,6 +82,21 @@ def main() -> int:
                       f"{r['verdict']:<4} {'(SAVINGS VOID)' if r['verdict']=='FAIL' else ''}", flush=True)
 
     good = [r for r in rows if "error" not in r]
+    failed = [r for r in rows if "error" in r]
+    if failed and not good:
+        # A dead backend is loud per cell and silent in the summary: every mode
+        # reads 0 graded / 0% / 0 tokens, the mismatch check finds nothing to
+        # disagree because there are no receipts, a results file is written, and
+        # the exit code says success. That is an instrument reporting a result
+        # while measuring nothing, which is the one thing this bench exists to
+        # catch. Refuse the run instead of shipping a grid of zeros.
+        print(f"\nall {len(failed)} cells errored and nothing was graded - no grid written.")
+        print("the campaign talks to the running backend, in replay mode as in live:")
+        print("    cd app/api && ./mvnw spring-boot:run")
+        return 2
+    if failed:
+        print(f"\nWARNING: {len(failed)} of {len(rows)} cells errored and are excluded "
+              f"from every figure below - this grid is partial.")
     print(f"\n{'mode':<11} {'graded':>6} {'correct%':>8} {'median tok (correct only)':>26}")
     print("-" * 56)
     for mode in modes:

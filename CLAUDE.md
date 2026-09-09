@@ -45,8 +45,13 @@ under a MutationObserver). Rebuild both targets after any content change, or the
 ```
 python ../shared/walkthrough/build.py --scenarios "walkthroughs/U*.json" --root . --target course/index.html
 python ../shared/walkthrough/build.py --scenarios "walkthroughs/U*.json" --root . --standalone walkthrough/index.html \
-    --title "Ultimate Context Engineering — walkthroughs" --back ../index.html
+    --title "Ultimate Context Engineering — walkthroughs" --back ../index.html \
+    --eyebrow "ultimate context engineering · quick reference" \
+    --lede "Every module's measurement, stepped through: fifteen scenarios driven by the replay grid, from the naive baseline receipt to the mastery scorecard."
 ```
+The last two flags are **not optional**. Without them the shared runtime writes its own default
+eyebrow and lede over this page's hand-written ones, and the rebuild still looks clean because
+the only other change is the bundle. Rebuild with the whole command or not at all.
 Every scenario declares provenance and every number is copied from `bench/results/`. A `measured`
 citation that does not resolve **fails the build** — the correctness law, enforced rather than promised.
 

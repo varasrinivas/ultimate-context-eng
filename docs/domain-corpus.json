@@ -1,0 +1,355 @@
+{
+  "_comment": "Canonical vocabulary for Ultimate Context Engineering, linked into the prose by the shared domain runtime (../shared/domain, repo varasrinivas/course-walkthrough-runtime). Deliberately NOT inside bench/seed/dataset.json: that file's own _contract makes it the single source of truth for the running app, the Spring backend loads it into H2 at every boot, and build-lab.md tells lab authors to draw entities from it — teaching vocabulary does not belong in an app contract, even though @JsonIgnoreProperties(ignoreUnknown=true) on SeedData means an extra key would in fact be tolerated. The cast this glossary refers to (PA-1001..1010, M-2001 Rosa Delgado, procedure 72148) lives there and is not copied here. Rebuild with shared/domain/build.py after course/inject_staged.py or the walkthrough build.",
+  "title": "Course Glossary",
+  "subtitle": "Every word this course leans on. Press g from anywhere.",
+  "config": {
+    "scope": [
+      "#mvBody"
+    ],
+    "skip": [
+      ".quiz-opt",
+      ".mv-nav",
+      ".nd-mod",
+      ".lab-tag",
+      ".code-title",
+      ".mv-crosslink-tag",
+      ".module-row",
+      ".back-btn"
+    ],
+    "chrome": {
+      "topbar": "#themeToggle"
+    },
+    "shortcut": "g"
+  },
+  "watchlist": [
+    {
+      "word": "arm",
+      "term": "Arm"
+    },
+    {
+      "word": "OKF",
+      "term": "OKF"
+    },
+    {
+      "word": "okf",
+      "term": "OKF"
+    },
+    {
+      "word": "receipt",
+      "term": "TokenReceipt"
+    },
+    {
+      "word": "replay",
+      "term": "Replay mode"
+    },
+    {
+      "word": "fixture",
+      "term": "Fixture"
+    },
+    {
+      "word": "abstention",
+      "term": "Abstention"
+    },
+    {
+      "word": "altitude",
+      "term": "Altitude"
+    },
+    {
+      "word": "compaction",
+      "term": "Compaction"
+    },
+    {
+      "word": "grid",
+      "term": "Grid"
+    },
+    {
+      "word": "load-bearing",
+      "term": "Load-bearing fact"
+    },
+    {
+      "word": "standing question",
+      "term": "Standing question"
+    },
+    {
+      "word": "answer key",
+      "term": "Answer key"
+    },
+    {
+      "word": "MedFlow",
+      "term": "MedFlow Copilot"
+    },
+    {
+      "word": "canonical",
+      "term": "Canonical"
+    },
+    {
+      "word": "provenance",
+      "term": "Provenance"
+    },
+    {
+      "word": "median",
+      "skip": "ordinary statistics, and the course explains its fresh-session protocol where it matters"
+    },
+    {
+      "word": "prefix",
+      "skip": "covered by Cacheable prefix; the bare word is ordinary English here"
+    },
+    {
+      "word": "gate",
+      "skip": "used in several ordinary senses — freshness gate, confidence gate, approval gate — each explained where it appears"
+    },
+    {
+      "word": "layer",
+      "skip": "defined structurally by Five layers rather than as a word on its own"
+    },
+    {
+      "word": "ANTHROPIC-CE",
+      "term": "Canon citation"
+    },
+    {
+      "word": "PA-1004",
+      "skip": "one of the ten auth requests in bench/seed/dataset.json, not vocabulary — the cast is defined there"
+    }
+  ],
+  "glossary": [
+    {
+      "term": "MedFlow Copilot",
+      "short": "The app the whole course measures.",
+      "long": "A prior-authorization review queue with a Spring backend and a React front end, chosen because it shows its tokens: every call comes back with an itemised receipt. Its data is bench/seed/dataset.json.",
+      "match": [
+        "MedFlow"
+      ],
+      "see": [
+        "TokenReceipt",
+        "Standing question"
+      ]
+    },
+    {
+      "term": "TokenReceipt",
+      "short": "The itemised, layer-by-layer token bill returned by every call.",
+      "long": "The course's instrument. Read it line by line and each line is a track: system, retrieved, tool, history, user. The five always sum to the input total, and checking that reconciliation is the first thing to do to any token dashboard anyone shows you.",
+      "match": [
+        "receipt",
+        "Token Lens"
+      ],
+      "see": [
+        "Five layers"
+      ]
+    },
+    {
+      "term": "Five layers",
+      "short": "System, retrieved, tool, history, user — the receipt's unit of account.",
+      "long": "System is the standing instructions; retrieved is whatever the assembler pulled from the domain; tool is what lookups returned; history is the conversation so far; user is the question itself, routinely the smallest line on the bill.",
+      "see": [
+        "TokenReceipt"
+      ]
+    },
+    {
+      "term": "Arm",
+      "short": "One strategy, run over the whole question set — one column of the grid.",
+      "long": "Ten modes means ten arms. An arm is only ever quoted with its correctness verdict, because an arm that saves tokens and drops a load-bearing fact has not saved anything.",
+      "see": [
+        "Grid",
+        "Savings void",
+        "Mode"
+      ]
+    },
+    {
+      "term": "Grid",
+      "short": "Every arm crossed with every standing question.",
+      "long": "The course's whole claim structure: arms down one axis, questions across the other, each cell a token count and a verdict. Nothing is asserted that the grid cannot show.",
+      "see": [
+        "Arm",
+        "Standing question"
+      ]
+    },
+    {
+      "term": "Mode",
+      "short": "One of the ten context-assembly strategies the app can switch between.",
+      "long": "naive, budgeted, compressed, cached, jit, graph, okf, notes, isolated, routed — the curriculum maps one-to-one onto them, so every idea in the course is a toggle you can flip and measure.",
+      "see": [
+        "Arm"
+      ]
+    },
+    {
+      "term": "Standing question",
+      "short": "One of the ten fixed questions every arm is graded against.",
+      "long": "Q1-Q2 structural, Q3-Q4 canonical, Q5-Q6 logic, Q7-Q8 abstention, Q9-Q10 aggregation. Fixed on purpose: a strategy that only looks good on questions chosen after the fact has not been measured.",
+      "see": [
+        "Answer key",
+        "Grid"
+      ]
+    },
+    {
+      "term": "Answer key",
+      "short": "The facts an answer must contain to count as correct.",
+      "long": "Derived from bench/seed/dataset.json rather than written by hand, so the grader cannot drift away from the data the app is actually serving.",
+      "see": [
+        "Standing question",
+        "Load-bearing fact"
+      ]
+    },
+    {
+      "term": "Load-bearing fact",
+      "short": "A fact the correct answer depends on. Drop it and the answer is wrong.",
+      "long": "The unit the correctness gate is defined in. Compression that keeps the prose and loses one of these reads fine and is worthless.",
+      "see": [
+        "Savings void",
+        "Fidelity assertion"
+      ]
+    },
+    {
+      "term": "Savings void",
+      "short": "The verdict on an arm that saved tokens and lost a required fact.",
+      "long": "The course's central rule made mechanical: no token number is ever reported without its correctness verdict, and a cheaper wrong answer scores nothing at all.",
+      "see": [
+        "Arm",
+        "Load-bearing fact"
+      ]
+    },
+    {
+      "term": "Fidelity assertion",
+      "short": "A check that a compressed context still carries what it claims to.",
+      "long": "The last step of the compressed mode's prune, extract-verbatim, abstract sequence — the point at which summarisation stops being a hope and becomes something that can fail loudly.",
+      "see": [
+        "Load-bearing fact"
+      ]
+    },
+    {
+      "term": "Abstention",
+      "short": "Answering \"I do not know\" instead of inventing something.",
+      "long": "A gradeable skill, not a failure. Q7 exists to punish confident wrongness: an answer key set with no abstention trap cannot catch fabrication.",
+      "see": [
+        "Standing question"
+      ]
+    },
+    {
+      "term": "Replay mode",
+      "short": "Recorded model responses, so every lab runs with no API key.",
+      "long": "The default. Live mode is optional depth. It is also what makes the course's numbers reproducible — the same question returns the same bytes on your machine as on the author's.",
+      "match": [
+        "replay"
+      ],
+      "see": [
+        "Fixture"
+      ]
+    },
+    {
+      "term": "Fixture",
+      "short": "One recorded response, saved so it can be replayed.",
+      "long": "Numbers labelled synthetic-pre-recording came from fixtures. The U02 lab re-earns every one of them, which is the honest way to use a recording: as something you can regenerate, not something you must trust.",
+      "see": [
+        "Replay mode"
+      ]
+    },
+    {
+      "term": "OKF",
+      "short": "Open Knowledge Format — one canonical concept file instead of a document dump.",
+      "long": "Also the name of the mode that uses it. Knowledge as Markdown with YAML frontmatter, which is what lets a single small file answer a question that a folder of prose could not. The parent Knowledge Graphs course builds these.",
+      "cs": false,
+      "see": [
+        "Canonical",
+        "Mode"
+      ]
+    },
+    {
+      "term": "Canonical",
+      "short": "The one agreed version of something, rather than a copy of it.",
+      "long": "Used in three senses here, and worth keeping apart: a canonical concept file (the okf mode), the canonical strategy frame (write, select, compress, isolate), and canonical few-shot examples. All three mean the same thing — one authoritative version — applied to different material.",
+      "see": [
+        "OKF"
+      ]
+    },
+    {
+      "term": "Altitude",
+      "short": "How specific or general a system prompt is pitched.",
+      "long": "Too low and it is a brittle script; too high and it is a motivational poster. Altitude is the dial between them, and it is a design decision rather than a matter of taste.",
+      "see": [
+        "Five layers"
+      ]
+    },
+    {
+      "term": "Compaction",
+      "short": "Summarising a long conversation so it keeps fitting the window.",
+      "long": "The moment a session's history stops being a transcript and starts being a rewrite — which is exactly when a load-bearing fact can quietly disappear.",
+      "see": [
+        "Load-bearing fact"
+      ]
+    },
+    {
+      "term": "Cacheable prefix",
+      "short": "The unchanging head of a prompt, which the provider can bill at a discount.",
+      "long": "Only unbroken from the start of the prompt, which is why ordering is a cost decision: one moved token can void the whole prefix.",
+      "see": [
+        "Five layers"
+      ],
+      "match": [
+        "cacheable"
+      ]
+    },
+    {
+      "term": "Context rot",
+      "short": "Past a point, adding context makes answers worse rather than better.",
+      "long": "Not a capacity limit but an attention one — a window can rot well below its stated size, so 'it fits' is never the same as 'it helps'.",
+      "see": [
+        "Attention budget"
+      ]
+    },
+    {
+      "term": "Attention budget",
+      "short": "Attention degrades as the window fills, so every low-signal token taxes the high-signal ones.",
+      "long": "The reason context engineering is a budgeting discipline rather than a packing one.",
+      "see": [
+        "Context rot"
+      ]
+    },
+    {
+      "term": "Provenance",
+      "short": "Where a number came from, recorded next to it.",
+      "long": "Every figure in this course states its conditions, and a citation that does not resolve fails the build. A measurement whose origin you cannot check is a claim.",
+      "see": [
+        "Fixture"
+      ]
+    },
+    {
+      "term": "Sub-agent",
+      "short": "A separate call with its own clean window, whose summary comes back.",
+      "long": "How the isolated mode works: the messy gathering happens somewhere the main window never sees, and only a small answer crosses back.",
+      "see": [
+        "Mode"
+      ],
+      "match": [
+        "subagent"
+      ]
+    },
+    {
+      "term": "Prior authorization",
+      "short": "A health insurer's approval, required before certain treatment is given.",
+      "long": "The domain MedFlow Copilot works in. A reviewer weighs a request against the plan's criteria and approves, denies, or asks for more; that judgement is what the app assembles context for.",
+      "match": [
+        "prior auth",
+        "prior-authorization",
+        "prior authorisation"
+      ],
+      "see": [
+        "MedFlow Copilot"
+      ]
+    },
+    {
+      "term": "Canon citation",
+      "short": "A bracketed tag pointing at the source a claim rests on.",
+      "long": "[ANTHROPIC-CE], [LC-WSCI], [ROT-LIT], [PARENT-KG] and [PARENT-KIT] all resolve in docs/canon.md. They exist so a reader can check a claim against the work it came from rather than taking the course's word for it.",
+      "match": [
+        "ANTHROPIC-CE",
+        "LC-WSCI",
+        "ROT-LIT",
+        "PARENT-KG",
+        "PARENT-KIT"
+      ],
+      "cs": true,
+      "see": [
+        "Provenance"
+      ]
+    }
+  ]
+}

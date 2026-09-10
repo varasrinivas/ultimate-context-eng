@@ -33,9 +33,11 @@ labs/          U00..U14 × {understand, build} markdown pairs
 walkthroughs/  interactive step-through scenarios (JSON) → see ../shared/walkthrough/README.md
                runtime repo: varasrinivas/course-walkthrough-runtime (sibling checkout)
 walkthrough/   generated standalone quick-reference page (all scenarios behind tabs)
-docs/          canon.md · curriculum-map.md
+docs/          canon.md · curriculum-map.md · domain-corpus.json (the glossary the player links)
 .claude/commands  plan-module / build-module / validate-module / build-lab (kit-inherited; marker-injection — NEVER rewrite course/index.html wholesale)
 ```
+
+**Glossary.** `docs/domain-corpus.json` holds every word this course leans on, and the shared domain runtime (`../shared/domain/README.md`, same sibling repo as the walkthrough runtime) links the first use of each one in each module to its definition. It is deliberately **not** inside `bench/seed/dataset.json`: that file is the app's contract, loaded into H2 at boot, and teaching vocabulary does not belong in it — the corpus refers to its cast rather than copying it. Integration is a single `<!-- DG:BUNDLE -->` before `</body>`; the runtime builds its own panel and adopts the top bar, so no player code changed. Rebuild with `python ../shared/domain/build.py --corpus docs/domain-corpus.json --root . --target course/index.html --prose course/index.html --prose-mode mods` — after `inject_staged.py` or the walkthrough build, both of which rewrite the page. A `watchlist` word used in the prose that resolves to no term **fails the build**, the same way an unresolved `measured` citation does; `--report` lists what is still undefined. `arm` is why it exists: 40 uses, defined nowhere.
 
 **Walkthroughs.** Four modules (U02, U05, U07, U10) carry an interactive step-through of a measured
 scenario. Content is data in `walkthroughs/*.json`; the runtime is `../shared/walkthrough/`. Add a
